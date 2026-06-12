@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>价格异常检测 - Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+</head>
+<body>
+  <div id="app">
+    <nav class="top-nav">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="status-pill">{{ completed ? '✓ 已完成' : '进行中' }}</span>
+      </div>
+    </nav>
+
+    <header class="project-header">
+      <h1>价格异常检测</h1>
+      <div class="meta">
+        <span class="tag tag-基础">基础</span>
+        <span style="margin-left:10px;">项目 03 · 项目 id: 03_price_anomaly</span>
+      </div>
+      <p class="description">使用 IQR、标准差检测商品价格异常，适合风控、定价场景。</p>
+    </header>
+
+    <main class="project-main">
+      <div v-if="completed" class="celebrate">🎉 恭喜，本项目已完成！可以继续修改代码尝试新的思路。</div>
+
+      <section class="panel">
+        <h3>📊 数据概览</h3>
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:14px;">
+          商品价格数据集，包含 50 条 SKU 记录。下方可预览前 N 条数据。
+        </p>
+        <div class="field-list" style="margin-bottom:14px;">
+          <div class="field-item"><span class="f-name">product_id</span><span class="f-desc">商品编号</span></div>
+          <div class="field-item"><span class="f-name">category</span><span class="f-desc">品类(电子/日用/服装)</span></div>
+          <div class="field-item"><span class="f-name">price</span><span class="f-desc">商品价格</span></div>
+        </div>
+        <div class="data-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th v-for="h in dataHeaders" :key="h">{{ h }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, i) in dataPreview" :key="i">
+                <td v-for="(cell, j) in row" :key="j">{{ cell }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="color:var(--text-muted);font-size:12px;margin-top:8px;">显示前 {{ dataPreview.length }} 行 / 共 {{ totalRows }} 行</p>
+      </section>
+
+      <section class="panel">
+        <h3>💻 代码编辑器</h3>
+        <p style="color:var(--text-secondary);font-size:14px;margin-bottom:14px;">
+          在下方编写 pandas 代码。变量 <code style="background:#18223f;padding:2px 6px;border-radius:4px;">df</code>
+          已预先加载为 DataFrame。输出使用 <code style="background:#18223f;padding:2px 6px;border-radius:4px;">print()</code>
+          或 <code style="background:#18223f;padding:2px 6px;border-radius:4px;">show(df)</code>。
+        </p>
+        <div id="editor" class="cm-container"></div>
+        <div class="btn-row">
+          <button class="btn" @click="runCode">▶ 运行代码</button>
+          <button class="btn btn-secondary btn-sm" @click="loadAnswer">📖 加载参考答案</button>
+          <button class="btn btn-secondary btn-sm" @click="resetCode">↺ 重置</button>
+          <button class="btn btn-secondary btn-sm" @click="markDone" :disabled="completed">{{ completed ? '已完成' : '标记为完成' }}</button>
+        </div>
+        <p style="color:var(--text-muted);font-size:12px;margin-top:10px;">
+          提示：首次运行需几秒钟加载 Python 运行环境（Pyodide），之后运行速度很快。
+        </p>
+      </section>
+
+      <section class="panel">
+        <h3>📤 输出结果</h3>
+        <div id="output" class="output-console">
+          <p class="text-output muted">点击"运行代码"后结果将显示在这里…</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>💡 任务提示</h3>
+        <ul style="color:var(--text-secondary);font-size:14px;padding-left:20px;line-height:2;">
+          <li>方法一：整体数据的 <b>3-sigma</b> 方法，超出 [mean-3*std, mean+3*std] 视为异常</li>
+          <li>方法二：按 <b>品类分组</b> 计算 IQR，Q1 - 1.5 * IQR / Q3 + 1.5 * IQR 作为上下限</li>
+          <li>方法三：综合报告，统计被多少种方法标记为异常</li>
+          <li>方法四：Z-score（按分类计算，abs(z) > 2）</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Pandas 数据分析实战训练营 · 纯前端实现</p>
+      <p style="margin-top:6px;">Powered by Vue3 · TailwindCSS · CodeMirror · Pyodide</p>
+    </footer>
+  </div>
+
+  <!-- ============ CSV 数据 ============ -->
+  <script id="csv-data" type="text/csv">product_id,category,price
+SK001,电子,199
+SK002,电子,89
+SK003,电子,459
+SK004,电子,129
+SK005,电子,29
+SK006,电子,599
+SK007,日用,39
+SK008,日用,799
+SK009,日用,1299
+SK010,日用,49
+SK011,服装,89
+SK012,服装,299
+SK013,服装,159
+SK014,服装,129
+SK015,服装,59
+SK016,电子,99
+SK017,电子,129
+SK018,电子,189
+SK019,电子,9999
+SK020,电子,219
+SK021,电子,169
+SK022,电子,149
+SK023,电子,1
+SK024,电子,229
+SK025,日用,49
+SK026,日用,59
+SK027,日用,79
+SK028,日用,39
+SK029,日用,29
+SK030,日用,8999
+SK031,服装,199
+SK032,服装,259
+SK033,服装,399
+SK034,服装,1
+SK035,服装,179
+SK036,服装,299
+SK037,电子,179
+SK038,电子,209
+SK039,电子,239
+SK040,电子,99999
+SK041,日用,89
+SK042,日用,69
+SK043,日用,99
+SK044,日用,5
+SK045,服装,229
+SK046,服装,189
+SK047,服装,329
+SK048,服装,459
+SK049,服装,699
+SK050,电子,159</script>
+
+  <!-- ============ 默认代码 ============ -->
+  <script id="default-code" type="text/plain">import pandas as pd
+import io
+
+# 数据字段: product_id, category, price
+# 目标: 使用 IQR / 标准差方法检测价格异常
+
+# 1) 数据概览
+print("数据量:", len(df))
+print("分类分布:")
+show(df.groupby('category').agg(数量=('product_id','count'),平均价格=('price','mean')).reset_index())
+
+# 2) 查看描述性统计
+print("\n=== 价格描述性统计 ===")
+show(df['price'].describe())
+
+# 3) 查看每个分类中的价格分布
+print("\n=== 各分类价格统计 ===")
+by_cat = df.groupby('category')['price'].describe()
+show(by_cat)</script>
+
+  <!-- ============ 参考答案代码 ============ -->
+  <script id="answer-code" type="text/plain">import pandas as pd
+import numpy as np
+import io
+
+# ============ 方法一: 基于整体的 3-sigma ============
+mean = df['price'].mean()
+std = df['price'].std()
+upper_3s = mean + 3 * std
+lower_3s = max(mean - 3 * std, 0)
+print(f"=== 整体 3-sigma 方法 ===")
+print(f"均值: {mean:.2f}, 标准差: {std:.2f}")
+print(f"正常区间: [{lower_3s:.2f}, {upper_3s:.2f}]")
+
+anomaly_sigma = df[(df['price'] > upper_3s) | (df['price'] < lower_3s)].copy()
+anomaly_sigma['method'] = '3-sigma'
+print(f"异常数量: {len(anomaly_sigma)}")
+if len(anomaly_sigma) > 0:
+    show(anomaly_sigma.sort_values('price', ascending=False))
+
+# ============ 方法二: 基于各分类的 IQR 方法 ============
+print("\n=== 各分类 IQR 方法 ===")
+results = []
+
+for cat in df['category'].unique():
+    sub = df[df['category'] == cat]
+    q1 = sub['price'].quantile(0.25)
+    q3 = sub['price'].quantile(0.75)
+    iqr = q3 - q1
+    upper_bound = q3 + 1.5 * iqr
+    lower_bound = max(q1 - 1.5 * iqr, 0)
+    print(f"\n[{cat}] Q1={q1:.2f}, Q3={q3:.2f}, IQR={iqr:.2f}, 区间=[{lower_bound:.2f}, {upper_bound:.2f}]")
+
+    anomalies = sub[(sub['price'] > upper_bound) | (sub['price'] < lower_bound)].copy()
+    anomalies['category_Q1'] = q1
+    anomalies['category_Q3'] = q3
+    anomalies['upper_bound'] = upper_bound
+    anomalies['lower_bound'] = lower_bound
+    anomalies['method'] = 'IQR(by category)'
+    results.append(anomalies)
+
+all_iqr = pd.concat(results, ignore_index=True) if results else pd.DataFrame()
+
+print(f"\nIQR 方法共发现异常: {len(all_iqr)}")
+if len(all_iqr) > 0:
+    show(all_iqr[['product_id','category','price','lower_bound','upper_bound']].sort_values('price', ascending=False))
+
+# ============ 方法三: 综合报告 ============
+print("\n=== 综合异常检测报告 ===")
+# 合并两种方法的结果
+all_anomaly = pd.concat([anomaly_sigma, all_iqr], ignore_index=True)
+# 按重复次数标记严重程度
+anomaly_count = all_anomaly.groupby(['product_id','price']).agg(
+    命中方法数=('method','nunique'),
+    命中方法=('method',lambda x: ','.join(sorted(set(x))))
+).reset_index()
+# 加入分类
+anomaly_count = anomaly_count.merge(df[['product_id','category']], on='product_id', how='left')
+anomaly_count = anomaly_count.sort_values(['命中方法数','price'], ascending=[False,False])
+print("被至少一种方法标记为异常的商品:")
+show(anomaly_count[['product_id','category','price','命中方法数','命中方法']])
+
+# ============ 方法四: Z-score ============
+print("\n=== Z-score 方法 (按分类计算) ===")
+z_results = []
+for cat in df['category'].unique():
+    sub = df[df['category'] == cat].copy()
+    sub['z_score'] = (sub['price'] - sub['price'].mean()) / sub['price'].std()
+    sub['abs_z'] = sub['z_score'].abs()
+    z_results.append(sub[sub['abs_z'] > 2])
+
+z_df = pd.concat(z_results, ignore_index=True) if z_results else pd.DataFrame()
+print(f"Z-score > 2 的异常商品数: {len(z_df)}")
+if len(z_df) > 0:
+    show(z_df[['product_id','category','price','z_score']].sort_values('z_score', ascending=False))</script>
+
+  <!-- ============ Vue3 & storage ============ -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="../common/storage.js"></script>
+
+  <!-- ============ CodeMirror 6 via ESM importmap ============ -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.4.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.28.4",
+      "@codemirror/commands": "https://esm.sh/@codemirror/commands@6.6.0",
+      "@codemirror/language": "https://esm.sh/@codemirror/language@6.10.2",
+      "@codemirror/search": "https://esm.sh/@codemirror/search@6.5.6",
+      "@codemirror/autocomplete": "https://esm.sh/@codemirror/autocomplete@6.16.0",
+      "@codemirror/lint": "https://esm.sh/@codemirror/lint@6.5.0",
+      "@codemirror/fold": "https://esm.sh/@codemirror/fold@6.0.0",
+      "@codemirror/gutter": "https://esm.sh/@codemirror/gutter@6.0.1",
+      "@codemirror/history": "https://esm.sh/@codemirror/history@6.0.1",
+      "@codemirror/rangeset": "https://esm.sh/@codemirror/rangeset@6.0.1",
+      "@codemirror/rectangular-selection": "https://esm.sh/@codemirror/rectangular-selection@6.0.1",
+      "@codemirror/legacy-modes/mode/python": "https://esm.sh/@codemirror/legacy-modes@6.4.0/mode/python",
+      "@codemirror/legacy-modes/mode/xml": "https://esm.sh/@codemirror/legacy-modes@6.4.0/mode/xml",
+      "@codemirror/legacy-modes/mode/simple": "https://esm.sh/@codemirror/legacy-modes@6.4.0/mode/simple",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.2",
+      "codemirror": "https://esm.sh/codemirror@6.0.1"
+    }
+  }
+  </script>
+
+  <!-- ============ Pyodide v0.26.2 ============ -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+
+  <script type="module">
+    const { createApp, onMounted, ref } = Vue;
+
+    // ------- CodeMirror 6 -------
+    import { EditorState } from '@codemirror/state';
+    import { EditorView, keymap, lineNumbers, highlightActiveLine, highlightActiveLineGutter } from '@codemirror/view';
+    import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
+    import { foldGutter, foldKeymap } from '@codemirror/fold';
+    import { bracketMatching } from '@codemirror/language';
+    import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
+    import { StreamLanguage } from '@codemirror/language';
+    import { python } from '@codemirror/legacy-modes/mode/python';
+    import { oneDark } from '@codemirror/theme-one-dark';
+
+    const PROJECT_ID = '03_price_anomaly';
+
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      const headers = lines[0].split(',');
+      const rows = [];
+      for (let i = 1; i < lines.length; i++) {
+        rows.push(lines[i].split(','));
+      }
+      return { headers, rows };
+    }
+
+    // ------- 简易 HTML 渲染：解析 pandas DataFrame 的 HTML 输出 -------
+    function renderDFOutput(htmlStr, container) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'df-wrapper';
+
+      const tmp = document.createElement('div');
+      tmp.innerHTML = htmlStr;
+      const table = tmp.querySelector('table');
+      if (!table) {
+        container.appendChild(tmp);
+        return;
+      }
+
+      // 简化/美化
+      table.className = 'df-table';
+      const trs = table.querySelectorAll('tr');
+      let hasThInBody = false;
+      trs.forEach((tr) => {
+        const cells = tr.children;
+        for (let i = 0; i < cells.length; i++) {
+          const c = cells[i];
+          if (tr.parentElement && tr.parentElement.tagName === 'THEAD') {
+            if (i === 0 && c.tagName === 'TH') c.classList.add('df-index-head');
+          } else if (c.tagName === 'TH') {
+            c.classList.add('df-index');
+            hasThInBody = true;
+          }
+        }
+      });
+
+      // 标题 + 行数
+      const shape = trs.length - 1;
+      const cols = table.querySelectorAll('thead th').length - (hasThInBody ? 1 : 0);
+      const title = document.createElement('div');
+      title.className = 'df-title';
+      title.innerHTML = 'DataFrame <span class="df-shape">(' + shape + ' rows × ' + cols + ' cols)</span>';
+
+      const scroll = document.createElement('div');
+      scroll.className = 'df-scroll';
+      scroll.appendChild(table);
+
+      wrapper.appendChild(title);
+      wrapper.appendChild(scroll);
+      container.appendChild(wrapper);
+    }
+
+    // ------- Pyodide 初始化 -------
+    let pyodide = null;
+    let pyodideReady = false;
+
+    async function initPyodide() {
+      if (pyodideReady) return;
+      pyodide = await loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/' });
+      await pyodide.loadPackage(['pandas', 'numpy']);
+
+      // 设置 show 函数（将 DataFrame 转 HTML 输出）
+      pyodide.runPython(`
+import pandas as pd
+import io
+import builtins
+
+__html_parts__ = []
+__text_parts__ = []
+
+def show(obj):
+    if isinstance(obj, pd.DataFrame) or isinstance(obj, pd.Series):
+        html = obj.to_html(na_rep='NaN')
+        __html_parts__.append(html)
+        print('[__DF__MARKER__:' + str(len(__html_parts__) - 1) + ']')
+    else:
+        print(obj)
+
+builtins.show = show
+`);
+      pyodideReady = true;
+    }
+
+    // ------- Vue App -------
+    const app = createApp({
+      setup() {
+        const completed = ref(false);
+        const csvText = document.getElementById('csv-data').textContent;
+        const parsed = parseCSV(csvText);
+        const dataHeaders = parsed.headers;
+        const totalRows = parsed.rows.length;
+        const dataPreview = parsed.rows.slice(0, 10);
+
+        let editorView = null;
+
+        function getDefaultCode() {
+          return document.getElementById('default-code').textContent;
+        }
+        function getAnswerCode() {
+          return document.getElementById('answer-code').textContent;
+        }
+
+        function loadCode() {
+          const saved = PandasCampStorage.getCode(PROJECT_ID);
+          return saved !== null ? saved : getDefaultCode();
+        }
+
+        function initEditor(initialCode) {
+          const theme = EditorView.theme({
+            '&': { backgroundColor: '#0a0f1d' },
+            '.cm-content': { caretColor: '#93c5fd', padding: '10px 0' },
+            '.cm-gutters': { backgroundColor: '#0a0f1d', color: '#6e7b99', border: 'none', borderRight: '1px solid #1f2a44' },
+            '.cm-activeLineGutter': { backgroundColor: 'rgba(59, 130, 246, 0.15)' },
+            '.cm-activeLine': { backgroundColor: 'rgba(59, 130, 246, 0.08)' },
+            '.cm-selectionBackground, &.cm-focused .cm-selectionBackground, ::selection': { backgroundColor: 'rgba(59, 130, 246, 0.25)' }
+          });
+
+          const state = EditorState.create({
+            doc: initialCode,
+            extensions: [
+              lineNumbers(),
+              highlightActiveLine(),
+              highlightActiveLineGutter(),
+              foldGutter(),
+              bracketMatching(),
+              highlightSelectionMatches(),
+              history(),
+              StreamLanguage.define(python),
+              oneDark,
+              theme,
+              keymap.of([
+                ...defaultKeymap,
+                ...historyKeymap,
+                ...foldKeymap,
+                ...searchKeymap,
+                indentWithTab
+              ])
+            ]
+          });
+
+          editorView = new EditorView({
+            state,
+            parent: document.getElementById('editor')
+          });
+        }
+
+        function clearOutput() {
+          const out = document.getElementById('output');
+          out.innerHTML = '';
+        }
+
+        function appendText(text, opts = {}) {
+          const out = document.getElementById('output');
+          const p = document.createElement('p');
+          p.className = 'text-output' + (opts.muted ? ' muted' : '') + (opts.running ? ' output-running' : '') + (opts.error ? ' output-error' : '');
+          p.textContent = text;
+          out.appendChild(p);
+        }
+
+        async function runCode() {
+          clearOutput();
+          appendText('正在加载/初始化 Python 环境 …', { running: true });
+
+          try {
+            await initPyodide();
+
+            const code = editorView.state.doc.toString();
+            // 保存用户代码
+            PandasCampStorage.saveCode(PROJECT_ID, code);
+
+            clearOutput();
+            appendText('▶ 正在执行代码 …', { running: true });
+
+            // 注入 df
+            pyodide.runPython(`
+__html_parts__.clear()
+__text_parts__.clear()
+import pandas as pd
+_csv_data_ = """${csvText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$')}"""
+import io
+df = pd.read_csv(io.StringIO(_csv_data_))
+`);
+
+            // 执行用户代码 —— 捕获 stdout
+            pyodide.runPython(`
+import sys
+import io
+_buf = io.StringIO()
+_old = sys.stdout
+sys.stdout = _buf
+`);
+            try {
+              await pyodide.runPythonAsync(code);
+            } catch (err) {
+              // 恢复 stdout 再抛
+              pyodide.runPython('sys.stdout = _old');
+              clearOutput();
+              appendText('❌ 运行错误:', { error: true });
+              appendText(String(err.message || err));
+              return;
+            }
+            pyodide.runPython('sys.stdout = _old');
+
+            const stdoutText = pyodide.runPython('_buf.getvalue()');
+            const htmlParts = pyodide.runPython('list(__html_parts__)').toJs();
+
+            // 解析输出，把 [__DF__MARKER__:N] 替换为渲染后的 HTML 表格
+            clearOutput();
+            const tokens = stdoutText.split(/(\[__DF__MARKER__:\d+\])/);
+            tokens.forEach((tok) => {
+              const m = tok.match(/^\[__DF__MARKER__:(\d+)\]$/);
+              if (m) {
+                const idx = parseInt(m[1], 10);
+                if (htmlParts[idx] !== undefined) {
+                  renderDFOutput(htmlParts[idx], document.getElementById('output'));
+                }
+              } else if (tok.trim() !== '' || tok === '\n') {
+                if (tok.trim() === '') {
+                  // 空行保留
+                  if (tok !== '') {
+                    const p = document.createElement('p');
+                    p.className = 'text-output muted';
+                    p.innerHTML = '&nbsp;';
+                    document.getElementById('output').appendChild(p);
+                  }
+                } else {
+                  appendText(tok.replace(/\n+$/,''));
+                }
+              }
+            });
+
+            if (!document.getElementById('output').children.length) {
+              appendText('(没有输出)');
+            }
+
+            appendText('✔ 执行完毕', { muted: true });
+          } catch (e) {
+            clearOutput();
+            appendText('❌ 初始化错误:', { error: true });
+            appendText(String(e.message || e));
+          }
+        }
+
+        function loadAnswer() {
+          if (editorView) {
+            editorView.dispatch({
+              changes: { from: 0, to: editorView.state.doc.length, insert: getAnswerCode() }
+            });
+          }
+        }
+        function resetCode() {
+          if (editorView) {
+            editorView.dispatch({
+              changes: { from: 0, to: editorView.state.doc.length, insert: getDefaultCode() }
+            });
+            PandasCampStorage.clearCode(PROJECT_ID);
+          }
+        }
+        function markDone() {
+          PandasCampStorage.markComplete(PROJECT_ID);
+          completed.value = true;
+        }
+
+        onMounted(() => {
+          initEditor(loadCode());
+          completed.value = PandasCampStorage.isCompleted(PROJECT_ID);
+        });
+
+        return {
+          completed,
+          dataHeaders,
+          dataPreview,
+          totalRows,
+          runCode,
+          loadAnswer,
+          resetCode,
+          markDone
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

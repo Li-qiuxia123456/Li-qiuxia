@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>购物车放弃分析 · Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航栏 -->
+    <nav class="top-nav">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="status-pill" id="status-pill">准备就绪</span>
+      </div>
+    </nav>
+
+    <!-- 项目标题区 -->
+    <header class="project-header">
+      <div class="meta">
+        <span class="tag tag-入门">入门</span>
+        <span class="muted">项目 01 / 10</span>
+      </div>
+      <h1>购物车放弃分析</h1>
+      <p class="description">分析用户加购未付款行为，计算放弃率、时段趋势等指标。通过本项目熟悉 Pandas 的 DataFrame 基础操作、分组聚合、时间字段解析。</p>
+    </header>
+
+    <main class="project-main">
+
+      <!-- 完成徽章区 -->
+      <div id="celebrate" class="celebrate hidden">
+        🎉 恭喜完成《购物车放弃分析》项目！已记录到你的学习进度。
+      </div>
+
+      <!-- 数据集说明面板 -->
+      <section class="panel">
+        <h3>📋 数据集字段说明</h3>
+        <div class="field-list">
+          <div class="field-item"><span class="f-name">user_id</span><span class="f-desc">用户唯一标识</span></div>
+          <div class="field-item"><span class="f-name">item_id</span><span class="f-desc">商品编号</span></div>
+          <div class="field-item"><span class="f-name">add_time</span><span class="f-desc">加购时间</span></div>
+          <div class="field-item"><span class="f-name">payment_time</span><span class="f-desc">支付时间（空表示未支付）</span></div>
+          <div class="field-item"><span class="f-name">price</span><span class="f-desc">商品单价（元）</span></div>
+          <div class="field-item"><span class="f-name">quantity</span><span class="f-desc">加购数量</span></div>
+        </div>
+      </section>
+
+      <!-- 数据预览面板 -->
+      <section class="panel">
+        <h3>🔍 数据预览（共 30 条）</h3>
+        <div class="data-scroll">
+          <table class="data-table" id="data-table">
+            <thead>
+              <tr>
+                <th>user_id</th>
+                <th>item_id</th>
+                <th>add_time</th>
+                <th>payment_time</th>
+                <th>price</th>
+                <th>quantity</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 代码编辑面板 -->
+      <section class="panel">
+        <h3>💻 代码编辑器</h3>
+        <div id="editor-container" class="cm-container"></div>
+        <div class="btn-row">
+          <button class="btn" id="btn-run">▶ 运行代码</button>
+          <button class="btn btn-secondary" id="btn-reset">重置代码</button>
+          <button class="btn btn-secondary" id="btn-answer">查看参考答案</button>
+        </div>
+      </section>
+
+      <!-- 输出控制台 -->
+      <section class="panel">
+        <h3>📤 输出结果</h3>
+        <div id="output" class="output-console"></div>
+      </section>
+
+      <!-- 完成项目 -->
+      <section class="panel" style="text-align:center;">
+        <h3>🏅 项目完成</h3>
+        <p class="muted" style="margin-bottom:14px;font-size:14px;">如果你已经成功运行代码并获得分析结果，点击下方按钮标记项目完成。</p>
+        <button class="btn btn-success" id="btn-complete">✓ 完成项目</button>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>Pandas 数据分析实战训练营 · 纯前端实现</p>
+      <p style="margin-top:6px;">Powered by Vue3 · TailwindCSS · CodeMirror · Pyodide</p>
+    </footer>
+  </div>
+
+  <!-- CSV 数据 -->
+  <script type="text/csv" id="csv-data">
+user_id,item_id,add_time,payment_time,price,quantity
+U001,SK001,2024-03-01 08:12,2024-03-01 08:15,199.0,1
+U002,SK002,2024-03-01 09:30,,89.0,2
+U003,SK003,2024-03-01 10:05,2024-03-01 10:10,459.0,1
+U004,SK004,2024-03-01 11:20,,129.0,3
+U005,SK001,2024-03-01 12:00,2024-03-01 12:05,199.0,2
+U006,SK005,2024-03-01 13:40,,29.0,1
+U007,SK002,2024-03-01 14:15,2024-03-01 14:22,89.0,1
+U008,SK006,2024-03-01 15:30,,599.0,1
+U009,SK003,2024-03-01 16:45,2024-03-01 16:55,459.0,1
+U010,SK007,2024-03-01 17:00,,39.0,5
+U011,SK001,2024-03-01 18:20,2024-03-01 18:25,199.0,1
+U012,SK008,2024-03-01 19:10,,799.0,1
+U013,SK004,2024-03-01 20:00,2024-03-01 20:08,129.0,2
+U014,SK002,2024-03-01 21:15,,89.0,1
+U015,SK009,2024-03-02 08:30,2024-03-02 08:40,1299.0,1
+U016,SK001,2024-03-02 09:00,,199.0,2
+U017,SK010,2024-03-02 10:20,2024-03-02 10:25,49.0,3
+U018,SK003,2024-03-02 11:10,,459.0,1
+U019,SK005,2024-03-02 12:30,2024-03-02 12:35,29.0,2
+U020,SK002,2024-03-02 13:50,,89.0,1
+U021,SK006,2024-03-02 14:20,2024-03-02 14:28,599.0,1
+U022,SK001,2024-03-02 15:00,,199.0,1
+U023,SK007,2024-03-02 16:15,2024-03-02 16:20,39.0,4
+U024,SK008,2024-03-02 18:30,,799.0,1
+U025,SK003,2024-03-02 19:45,2024-03-02 19:50,459.0,1
+U026,SK009,2024-03-02 20:20,,1299.0,1
+U027,SK004,2024-03-02 21:00,2024-03-02 21:05,129.0,1
+U028,SK001,2024-03-03 08:15,,199.0,1
+U029,SK002,2024-03-03 09:40,2024-03-03 09:45,89.0,3
+U030,SK010,2024-03-03 10:30,,49.0,2
+  </script>
+
+  <!-- 默认代码 -->
+  <script type="text/plain" id="default-code">
+import pandas as pd
+import io
+
+# df 变量已由页面预加载
+# 数据字段: user_id, item_id, add_time, payment_time, price, quantity
+# payment_time 为空表示用户"未支付"，即放弃购物车
+
+# 第一步：查看数据基本信息
+print("数据行数:", len(df))
+print("数据前 5 行:")
+show(df.head())
+
+# 第二步：新增放弃状态列
+df['is_abandoned'] = df['payment_time'].isna()
+print("\n各商品数量:")
+show(df.groupby('item_id')['quantity'].sum().sort_values(ascending=False))
+
+# 第三步：计算整体放弃率
+total = len(df)
+abandoned = df['is_abandoned'].sum()
+rate = abandoned / total
+print("\n=== 整体统计 ===")
+print(f"总加购数: {total}")
+print(f"放弃数: {abandoned}")
+print(f"放弃率: {rate:.2%}")
+  </script>
+
+  <!-- 参考答案代码 -->
+  <script type="text/plain" id="answer-code">
+import pandas as pd
+import io
+
+# 预处理：时间解析 + 放弃标记
+df['add_time'] = pd.to_datetime(df['add_time'])
+df['payment_time'] = pd.to_datetime(df['payment_time'])
+df['is_abandoned'] = df['payment_time'].isna()
+df['add_hour'] = df['add_time'].dt.hour
+df['add_day'] = df['add_time'].dt.date
+
+# 1) 整体放弃率
+total = len(df)
+abandoned = df['is_abandoned'].sum()
+print(f"=== 整体统计 ===")
+print(f"总加购数: {total}, 放弃数: {abandoned}, 放弃率: {abandoned/total:.2%}")
+
+# 2) 按小时分组的放弃率
+by_hour = df.groupby('add_hour').agg(
+    总加购数=('is_abandoned', 'count'),
+    放弃数=('is_abandoned', 'sum')
+).reset_index()
+by_hour['放弃率'] = by_hour['放弃数'] / by_hour['总加购数']
+by_hour = by_hour.sort_values('放弃率', ascending=False)
+print("\n=== 按时段(小时)统计放弃率 Top10 ===")
+show(by_hour.head(10))
+
+# 3) 按商品统计的放弃情况
+by_item = df.groupby('item_id').agg(
+    加购数=('is_abandoned', 'count'),
+    放弃数=('is_abandoned', 'sum'),
+    平均价格=('price', 'mean'),
+    总数量=('quantity', 'sum')
+).reset_index()
+by_item['放弃率'] = by_item['放弃数'] / by_item['加购数']
+by_item = by_item.sort_values('放弃数', ascending=False)
+print("\n=== 按商品统计放弃情况 ===")
+show(by_item)
+
+# 4) 加购到支付的平均时长（对已支付的订单）
+paid = df[~df['is_abandoned']].copy()
+paid['pay_minutes'] = (paid['payment_time'] - paid['add_time']).dt.total_seconds() / 60
+print(f"\n=== 支付行为分析 ===")
+print(f"已支付订单数: {len(paid)}")
+print(f"平均支付时长: {paid['pay_minutes'].mean():.1f} 分钟")
+print(f"中位支付时长: {paid['pay_minutes'].median():.1f} 分钟")
+  </script>
+
+  <!-- 依赖库：按顺序加载 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="../common/storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+  <script src="../common/pyodide_setup.js"></script>
+  <script src="../common/code_runner.js"></script>
+
+  <!-- CodeMirror 6 通过 ESM importmap 加载 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.4.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.26.3",
+      "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.1.4",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.2"
+    }
+  }
+  </script>
+
+  <!-- 主逻辑 -->
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view';
+    import { defaultKeymap, history, historyKeymap } from 'codemirror';
+    import { python } from '@codemirror/lang-python';
+    import { oneDark } from '@codemirror/theme-one-dark';
+
+    const PROJECT_ID = '01_cart_abandon';
+
+    // 1) 渲染数据预览表格（从 CSV 元素读取）
+    (function renderTable() {
+      const csvEl = document.getElementById('csv-data');
+      const raw = (csvEl.textContent || '').trim();
+      const lines = raw.split('\n').filter(l => l.trim().length > 0);
+      if (lines.length < 2) return;
+      const tbody = document.getElementById('data-table-body');
+      let html = '';
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        html += '<tr>';
+        for (let j = 0; j < cols.length; j++) {
+          html += '<td>' + (cols[j] || '<span class="muted">-</span>') + '</td>';
+        }
+        html += '</tr>';
+      }
+      tbody.innerHTML = html;
+    })();
+
+    // 2) 初始化 CodeMirror 编辑器
+    const defaultCode = document.getElementById('default-code').textContent.trim();
+    const answerCode = document.getElementById('answer-code').textContent.trim();
+    const csvText = document.getElementById('csv-data').textContent.trim();
+
+    // 优先从 localStorage 恢复用户代码
+    const savedCode = PandasCampStorage.getCode(PROJECT_ID);
+    const initialCode = (typeof savedCode === 'string' && savedCode.length > 0) ? savedCode : defaultCode;
+
+    const editorContainer = document.getElementById('editor-container');
+
+    const extensions = [
+      lineNumbers(),
+      highlightActiveLine(),
+      history(),
+      keymap.of([...defaultKeymap, ...historyKeymap]),
+      python(),
+      oneDark,
+      EditorView.updateListener.of(function(v) {
+        if (v.docChanged) { debouncedSave(); }
+      })
+    ];
+
+    const state = EditorState.create({
+      doc: (typeof savedCode === 'string' && savedCode.length > 0) ? savedCode : defaultCode,
+      extensions: extensions
+    });
+
+    const editor = new EditorView({
+      state: state,
+      parent: editorContainer
+    });
+
+    // 防抖自动保存
+    let saveTimer = null;
+    function debouncedSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(function() {
+        try {
+          PandasCampStorage.saveCode(PROJECT_ID, editor.state.doc.toString());
+        } catch (e) {}
+      }, 500);
+    }
+
+    // 3) 按钮事件
+    const outputElement = document.getElementById('output');
+    const statusElement = document.getElementById('status-pill');
+    const celebrateElement = document.getElementById('celebrate');
+
+    document.getElementById('btn-run').addEventListener('click', function() {
+      const code = editor.state.doc.toString();
+      PandasCampRunner.run(code, csvText, outputElement, statusElement);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', function() {
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: defaultCode }
+      });
+      PandasCampStorage.clearCode(PROJECT_ID);
+      statusElement.textContent = '已重置为默认代码';
+    });
+
+    document.getElementById('btn-answer').addEventListener('click', function() {
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: answerCode }
+      });
+      statusElement.textContent = '已加载参考答案';
+    });
+
+    document.getElementById('btn-complete').addEventListener('click', function() {
+      PandasCampStorage.markComplete(PROJECT_ID);
+      celebrateElement.classList.remove('hidden');
+      statusElement.textContent = '✓ 项目完成';
+    });
+
+    // 如果项目已完成，显示徽章
+    if (PandasCampStorage.isCompleted(PROJECT_ID)) {
+      celebrateElement.classList.remove('hidden');
+      statusElement.textContent = '✓ 已完成';
+    }
+
+    // 暴露 editor 到 window，方便调试
+    window.__editor = editor;
+  </script>
+</body>
+</html>

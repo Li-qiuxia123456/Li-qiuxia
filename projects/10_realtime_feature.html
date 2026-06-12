@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>实时特征滚动窗口 · Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航栏 -->
+    <nav class="top-nav">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="status-pill" id="status-pill">准备就绪</span>
+      </div>
+    </nav>
+
+    <!-- 项目标题区 -->
+    <header class="project-header">
+      <div class="meta">
+        <span class="tag tag-专家">专家</span>
+        <span class="muted">项目 10 / 10</span>
+      </div>
+      <h1>实时特征滚动窗口</h1>
+      <p class="description">时间窗口滚动统计，模拟实时推荐/风控特征工程。熟悉 Pandas 的时间索引、滚动窗口（rolling window）、异常检测等高级特性。</p>
+    </header>
+
+    <main class="project-main">
+
+      <!-- 完成徽章区 -->
+      <div id="celebrate" class="celebrate hidden">
+        🎉 恭喜完成《实时特征滚动窗口》项目！已记录到你的学习进度。
+      </div>
+
+      <!-- 数据集说明面板 -->
+      <section class="panel">
+        <h3>📋 数据集字段说明</h3>
+        <div class="field-list">
+          <div class="field-item"><span class="f-name">user_id</span><span class="f-desc">用户唯一标识</span></div>
+          <div class="field-item"><span class="f-name">timestamp</span><span class="f-desc">交易时间戳</span></div>
+          <div class="field-item"><span class="f-name">amount</span><span class="f-desc">交易金额</span></div>
+        </div>
+      </section>
+
+      <!-- 数据预览面板 -->
+      <section class="panel">
+        <h3>🔍 数据预览（共 65 条）</h3>
+        <div class="data-scroll">
+          <table class="data-table" id="data-table">
+            <thead>
+              <tr>
+                <th>user_id</th>
+                <th>timestamp</th>
+                <th>amount</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 代码编辑面板 -->
+      <section class="panel">
+        <h3>💻 代码编辑器</h3>
+        <div id="editor-container" class="cm-container"></div>
+        <div class="btn-row">
+          <button class="btn" id="btn-run">▶ 运行代码</button>
+          <button class="btn btn-secondary" id="btn-reset">重置代码</button>
+          <button class="btn btn-secondary" id="btn-answer">查看参考答案</button>
+        </div>
+      </section>
+
+      <!-- 输出控制台 -->
+      <section class="panel">
+        <h3>📤 输出结果</h3>
+        <div id="output" class="output-console"></div>
+      </section>
+
+      <!-- 完成项目 -->
+      <section class="panel" style="text-align:center;">
+        <h3>🏅 项目完成</h3>
+        <p class="muted" style="margin-bottom:14px;font-size:14px;">如果你已经成功运行代码并获得分析结果，点击下方按钮标记项目完成。</p>
+        <button class="btn btn-success" id="btn-complete">✓ 完成项目</button>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>Pandas 数据分析实战训练营 · 纯前端实现</p>
+      <p style="margin-top:6px;">Powered by Vue3 · TailwindCSS · CodeMirror · Pyodide</p>
+    </footer>
+  </div>
+
+  <!-- CSV 数据 -->
+  <script type="text/csv" id="csv-data">
+user_id,timestamp,amount
+U701,2024-03-20 08:00:00,199
+U701,2024-03-20 08:15:00,299
+U701,2024-03-20 08:30:00,159
+U701,2024-03-20 09:00:00,399
+U701,2024-03-20 10:00:00,599
+U702,2024-03-20 08:00:00,99
+U702,2024-03-20 08:05:00,129
+U702,2024-03-20 08:10:00,89
+U702,2024-03-20 09:30:00,459
+U702,2024-03-20 10:30:00,299
+U703,2024-03-20 08:00:00,1999
+U703,2024-03-20 08:02:00,2999
+U703,2024-03-20 08:05:00,1599
+U703,2024-03-20 08:10:00,1299
+U703,2024-03-20 08:30:00,3999
+U704,2024-03-20 08:00:00,49
+U704,2024-03-20 08:30:00,79
+U704,2024-03-20 09:00:00,59
+U704,2024-03-20 09:30:00,129
+U704,2024-03-20 10:00:00,89
+U705,2024-03-20 08:00:00,599
+U705,2024-03-20 08:20:00,799
+U705,2024-03-20 08:50:00,459
+U705,2024-03-20 09:20:00,899
+U705,2024-03-20 10:00:00,699
+U701,2024-03-20 11:00:00,299
+U701,2024-03-20 12:00:00,159
+U701,2024-03-20 13:00:00,899
+U701,2024-03-20 14:00:00,1299
+U702,2024-03-20 11:30:00,399
+U702,2024-03-20 12:30:00,199
+U702,2024-03-20 13:30:00,599
+U703,2024-03-20 11:00:00,2599
+U703,2024-03-20 12:00:00,1899
+U704,2024-03-20 11:00:00,159
+U704,2024-03-20 12:00:00,299
+U705,2024-03-20 11:30:00,359
+U705,2024-03-20 12:30:00,459
+U705,2024-03-20 13:30:00,559
+U706,2024-03-21 08:00:00,399
+U706,2024-03-21 08:05:00,499
+U706,2024-03-21 08:10:00,599
+U706,2024-03-21 08:20:00,299
+U706,2024-03-21 08:30:00,199
+U707,2024-03-21 08:00:00,59
+U707,2024-03-21 08:15:00,79
+U707,2024-03-21 08:30:00,99
+U708,2024-03-21 08:00:00,899
+U708,2024-03-21 08:01:00,999
+U708,2024-03-21 08:02:00,1199
+U708,2024-03-21 08:03:00,1399
+U708,2024-03-21 08:04:00,1599
+U708,2024-03-21 09:00:00,499
+U708,2024-03-21 10:00:00,299
+U701,2024-03-21 08:00:00,299
+U701,2024-03-21 08:30:00,599
+U701,2024-03-21 09:00:00,399
+U702,2024-03-21 09:00:00,199
+U702,2024-03-21 09:30:00,299
+U702,2024-03-21 10:30:00,399
+U709,2024-03-21 10:00:00,4999
+U709,2024-03-21 10:01:00,3999
+U709,2024-03-21 10:02:00,2999
+U709,2024-03-21 10:05:00,5999
+  </script>
+
+  <!-- 默认代码 -->
+  <script type="text/plain" id="default-code">
+import pandas as pd
+import io
+
+# 数据字段: user_id, timestamp, amount
+# 目标: 模拟实时特征引擎，计算滚动窗口统计
+
+# 1) 基础概览
+print("=== 数据概览 ===")
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+df = df.sort_values(['user_id', 'timestamp']).reset_index(drop=True)
+print(f"总交易数: {len(df)}")
+print(f"用户数: {df['user_id'].nunique()}")
+print(f"时间范围: {df['timestamp'].min()} ~ {df['timestamp'].max()}")
+
+# 2) 每个用户的交易时间间隔
+print("\n每笔交易的时间间隔:")
+df['time_diff_sec'] = df.groupby('user_id')['timestamp'].diff().dt.total_seconds()
+show(df.groupby('user_id').agg(
+    交易数=('timestamp','count'),
+    平均间隔秒=('time_diff_sec','mean'),
+    最小间隔秒=('time_diff_sec','min'),
+    总金额=('amount','sum')
+).reset_index())
+
+# 提示: 下一步可以实现固定大小的时间窗口（如 1 小时），计算每个窗口内的交易特征
+  </script>
+
+  <!-- 参考答案代码 -->
+  <script type="text/plain" id="answer-code">
+import pandas as pd
+import numpy as np
+import io
+
+# ============ 1) 数据准备 ============
+print("=== 1) 数据准备 ===")
+df['timestamp'] = pd.to_datetime(df['timestamp'])
+df = df.sort_values(['user_id', 'timestamp']).reset_index(drop=True)
+print(f"总交易数: {len(df)}, 用户数: {df['user_id'].nunique()}")
+print(f"时间跨度: {df['timestamp'].min()} ~ {df['timestamp'].max()}")
+print(f"总金额: {df['amount'].sum():.2f}")
+
+# ============ 2) 逐笔增量统计基础特征 ============
+print("\n=== 2) 逐笔累计基础特征 ===")
+df['order_seq'] = df.groupby('user_id').cumcount() + 1
+df['cum_amount'] = df.groupby('user_id')['amount'].cumsum()
+df['avg_amount_so_far'] = df.groupby('user_id')['amount'].cumsum() / df['order_seq']
+df['prev_amount'] = df.groupby('user_id')['amount'].shift(1)
+df['amount_diff'] = df['amount'] - df['prev_amount']
+df['time_diff_sec'] = df.groupby('user_id')['timestamp'].diff().dt.total_seconds()
+
+print("用户交易时间线示例 (前 10 条):")
+show(df[['user_id', 'timestamp', 'order_seq', 'amount', 'cum_amount', 'time_diff_sec']].head(15))
+
+# ============ 3) 1 小时滚动窗口 ============
+print("\n=== 3) 1 小时时间窗口滚动统计 ===")
+# 设置 timestamp 为索引
+df_idx = df.set_index('timestamp').copy()
+
+# 对每个用户计算 1 小时滚动特征
+result_rows = []
+for uid in df['user_id'].unique():
+    sub = df_idx[df_idx['user_id'] == uid].copy()
+    # 滚动窗口 1 小时
+    rolling = sub['amount'].rolling('60min')
+    sub['window_1h_count'] = rolling.count().astype(int)
+    sub['window_1h_sum'] = rolling.sum()
+    sub['window_1h_mean'] = rolling.mean()
+    sub['window_1h_max'] = rolling.max()
+    sub['window_1h_min'] = rolling.min()
+    sub['window_1h_std'] = rolling.std()
+    # 5 分钟窗口
+    rolling_5min = sub['amount'].rolling('5min')
+    sub['window_5min_count'] = rolling_5min.count().astype(int)
+    sub['window_5min_sum'] = rolling_5min.sum()
+    sub['window_5min_mean'] = rolling_5min.mean()
+    # 短期/长期平均比
+    sub['short_long_ratio'] = sub['window_5min_mean'] / sub['window_1h_mean'].replace(0, np.nan)
+    sub['user_id'] = uid
+    result_rows.append(sub.reset_index())
+
+rolling_df = pd.concat(result_rows, ignore_index=True)
+rolling_df = rolling_df.sort_values(['user_id', 'timestamp']).reset_index(drop=True)
+
+# 显示每个用户的滚动特征
+cols = ['user_id', 'timestamp', 'amount', 'window_5min_count', 'window_5min_sum',
+        'window_5min_mean', 'window_1h_count', 'window_1h_sum', 'window_1h_mean',
+        'window_1h_max', 'short_long_ratio']
+print("\n每个用户的滚动时间特征:")
+for uid in rolling_df['user_id'].unique()[:3]:
+    print(f"\n--- 用户 {uid} ---")
+    sub = rolling_df[rolling_df['user_id'] == uid]
+    # 格式化浮点数为了更好的展示
+    for_show = sub[cols].copy()
+    for col in ['window_5min_mean', 'window_1h_mean', 'window_1h_max', 'short_long_ratio']:
+        for_show[col] = for_show[col].round(2)
+    show(for_show)
+
+# ============ 4) 异常交易检测（基于滚动窗口） ============
+print("\n=== 4) 基于滚动窗口的异常交易检测 ===")
+# 规则1: 当前金额 > 1小时平均金额的 3 倍
+# 规则2: 5 分钟内交易数 > 3 笔
+# 规则3: 单笔金额显著高于历史均值
+# 规则4: 短长期比率异常（>2 或 <0.5）
+
+alert_rows = []
+for _, row in rolling_df.iterrows():
+    alerts = []
+    if pd.notna(row['window_1h_mean']) and row['window_1h_mean'] > 0:
+        if row['amount'] > row['window_1h_mean'] * 3:
+            alerts.append('超1小时均值3倍')
+    if row['window_5min_count'] >= 3:
+        alerts.append('5分钟内≥3笔')
+    if pd.notna(row['amount']) and pd.notna(row['avg_amount_so_far']) and row['avg_amount_so_far'] > 0:
+        if row['amount'] > row['avg_amount_so_far'] * 5:
+            alerts.append('远超历史均值')
+    if pd.notna(row['short_long_ratio']) and (row['short_long_ratio'] > 2 or row['short_long_ratio'] < 0.5):
+        alerts.append('短长期比率异常')
+
+    if len(alerts) > 0:
+        alert_rows.append({
+            'user_id': row['user_id'],
+            '时间': row['timestamp'],
+            '金额': row['amount'],
+            '1小时均值': round(row['window_1h_mean'], 2) if pd.notna(row['window_1h_mean']) else 0,
+            '5分钟交易数': row['window_5min_count'],
+            '短长期比': round(row['short_long_ratio'], 2) if pd.notna(row['short_long_ratio']) else 0,
+            '告警': ', '.join(alerts)
+        })
+
+alert_df = pd.DataFrame(alert_rows)
+if len(alert_df) > 0:
+    print(f"共发现 {len(alert_df)} 条异常交易:")
+    show(alert_df.sort_values('金额', ascending=False))
+else:
+    print("未发现异常交易")
+
+# ============ 5) 用户级风险特征汇总 ============
+print("\n=== 5) 用户级风险特征汇总 ===")
+risk_rows = []
+for uid in rolling_df['user_id'].unique():
+    sub = rolling_df[rolling_df['user_id'] == uid]
+    total_amount = sub['amount'].sum()
+    max_5min_count = sub['window_5min_count'].max()
+    max_short_long = sub['short_long_ratio'].max()
+    max_1h_sum = sub['window_1h_sum'].max()
+    min_interval = sub['time_diff_sec'].min() if 'time_diff_sec' in sub.columns else None
+    risk_rows.append({
+        'user_id': uid,
+        总交易数: len(sub),
+        总金额: total_amount,
+        '5分钟峰值交易数': max_5min_count,
+        '1小时峰值金额': round(max_1h_sum, 2),
+        '最小交易间隔(秒)': min_interval,
+        '最大短长期比': round(max_short_long, 2) if pd.notna(max_short_long) else 0,
+        '平均单笔金额': round(total_amount / len(sub), 2)
+    })
+
+risk_df = pd.DataFrame(risk_rows).sort_values('总金额', ascending=False).reset_index(drop=True)
+show(risk_df)
+
+# ============ 6) 总结报告 ============
+print("\n=== 6) 实时特征报告 ===")
+print(f"- 用户数: {len(risk_df)}")
+print(f"- 总交易数: {len(rolling_df)}")
+print(f"- 异常交易数: {len(alert_df)} ({len(alert_df)/len(rolling_df):.2%})")
+
+# 识别高风险用户
+high_risk_users = [r for r in risk_rows if r['5分钟峰值交易数'] >= 3 or (r['最大短长期比'] if isinstance(r['最大短长期比'], (int, float)) else 0) > 1.5]
+print(f"- 疑似高频交易用户: {len(high_risk_users)} 人")
+if high_risk_users:
+    print("  用户ID列表:", ", ".join([str(r['user_id']) for r in high_risk_users[:5]]), "..." if len(high_risk_users) > 5 else "")
+  </script>
+
+  <!-- 依赖库：按顺序加载 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="../common/storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+  <script src="../common/pyodide_setup.js"></script>
+  <script src="../common/code_runner.js"></script>
+
+  <!-- CodeMirror 6 通过 ESM importmap 加载 -->
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.4.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.26.3",
+      "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.1.4",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.2"
+    }
+  }
+  </script>
+
+  <!-- 主逻辑 -->
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view';
+    import { defaultKeymap, history, historyKeymap } from 'codemirror';
+    import { python } from '@codemirror/lang-python';
+    import { oneDark } from '@codemirror/theme-one-dark';
+
+    const PROJECT_ID = '10_realtime_feature';
+
+    // 1) 渲染数据预览表格（从 CSV 元素读取）
+    (function renderTable() {
+      const csvEl = document.getElementById('csv-data');
+      const raw = (csvEl.textContent || '').trim();
+      const lines = raw.split('\n').filter(l => l.trim().length > 0);
+      if (lines.length < 2) return;
+      const tbody = document.getElementById('data-table-body');
+      let html = '';
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        html += '<tr>';
+        for (let j = 0; j < cols.length; j++) {
+          html += '<td>' + (cols[j] || '<span class="muted">-</span>') + '</td>';
+        }
+        html += '</tr>';
+      }
+      tbody.innerHTML = html;
+    })();
+
+    // 2) 初始化 CodeMirror 编辑器
+    const defaultCode = document.getElementById('default-code').textContent.trim();
+    const answerCode = document.getElementById('answer-code').textContent.trim();
+    const csvText = document.getElementById('csv-data').textContent.trim();
+
+    // 优先从 localStorage 恢复用户代码
+    const savedCode = PandasCampStorage.getCode(PROJECT_ID);
+    const initialCode = (typeof savedCode === 'string' && savedCode.length > 0) ? savedCode : defaultCode;
+
+    const editorContainer = document.getElementById('editor-container');
+
+    const extensions = [
+      lineNumbers(),
+      highlightActiveLine(),
+      history(),
+      keymap.of([...defaultKeymap, ...historyKeymap]),
+      python(),
+      oneDark,
+      EditorView.updateListener.of(function(v) {
+        if (v.docChanged) { debouncedSave(); }
+      })
+    ];
+
+    const state = EditorState.create({
+      doc: (typeof savedCode === 'string' && savedCode.length > 0) ? savedCode : defaultCode,
+      extensions: extensions
+    });
+
+    const editor = new EditorView({
+      state: state,
+      parent: editorContainer
+    });
+
+    // 防抖自动保存
+    let saveTimer = null;
+    function debouncedSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(function() {
+        try {
+          PandasCampStorage.saveCode(PROJECT_ID, editor.state.doc.toString());
+        } catch (e) {}
+      }, 500);
+    }
+
+    // 3) 按钮事件
+    const outputElement = document.getElementById('output');
+    const statusElement = document.getElementById('status-pill');
+    const celebrateElement = document.getElementById('celebrate');
+
+    document.getElementById('btn-run').addEventListener('click', function() {
+      const code = editor.state.doc.toString();
+      PandasCampRunner.run(code, csvText, outputElement, statusElement);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', function() {
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: defaultCode }
+      });
+      PandasCampStorage.clearCode(PROJECT_ID);
+      statusElement.textContent = '已重置为默认代码';
+    });
+
+    document.getElementById('btn-answer').addEventListener('click', function() {
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: answerCode }
+      });
+      statusElement.textContent = '已加载参考答案';
+    });
+
+    document.getElementById('btn-complete').addEventListener('click', function() {
+      PandasCampStorage.markComplete(PROJECT_ID);
+      celebrateElement.classList.remove('hidden');
+      statusElement.textContent = '✓ 项目完成';
+    });
+
+    // 如果项目已完成，显示徽章
+    if (PandasCampStorage.isCompleted(PROJECT_ID)) {
+      celebrateElement.classList.remove('hidden');
+      statusElement.textContent = '✓ 已完成';
+    }
+
+    // 暴露 editor 到 window，方便调试
+    window.__editor = editor;
+  </script>
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>促销活动效果对比 · Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+</head>
+<body>
+  <div id="app">
+    <nav class="top-nav">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="status-pill" id="status-pill">准备就绪</span>
+      </div>
+    </nav>
+
+    <header class="project-header">
+      <div class="meta">
+        <span class="tag tag-高阶">高阶</span>
+        <span class="muted">项目 07 / 10</span>
+      </div>
+      <h1>促销活动效果对比</h1>
+      <p class="description">对比活动周 vs 非活动周的销售额、客单价、转化率差异。通过本项目熟悉 Pandas 的分组聚合、日期处理、指标对比计算。</p>
+    </header>
+
+    <main class="project-main">
+
+      <div id="celebrate" class="celebrate hidden">
+        🎉 恭喜完成《促销活动效果对比》项目！已记录到你的学习进度。
+      </div>
+
+      <section class="panel">
+        <h3>📋 数据集字段说明</h3>
+        <div class="field-list">
+          <div class="field-item"><span class="f-name">user_id</span><span class="f-desc">用户唯一标识</span></div>
+          <div class="field-item"><span class="f-name">date</span><span class="f-desc">订单日期</span></div>
+          <div class="field-item"><span class="f-name">is_promo</span><span class="f-desc">是否促销期（1=促销期，0=非促销期）</span></div>
+          <div class="field-item"><span class="f-name">amount</span><span class="f-desc">订单金额（元）</span></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>🔍 数据预览（共 45 条）</h3>
+        <div class="data-scroll">
+          <table class="data-table" id="data-table">
+            <thead>
+              <tr>
+                <th>user_id</th>
+                <th>date</th>
+                <th>is_promo</th>
+                <th>amount</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>💻 代码编辑器</h3>
+        <div id="editor-container" class="cm-container"></div>
+        <div class="btn-row">
+          <button class="btn" id="btn-run">▶ 运行代码</button>
+          <button class="btn btn-secondary" id="btn-reset">重置代码</button>
+          <button class="btn btn-secondary" id="btn-answer">查看参考答案</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>📤 输出结果</h3>
+        <div id="output" class="output-console"></div>
+      </section>
+
+      <section class="panel" style="text-align:center;">
+        <h3>🏅 项目完成</h3>
+        <p class="muted" style="margin-bottom:14px;font-size:14px;">如果你已经成功运行代码并获得分析结果，点击下方按钮标记项目完成。</p>
+        <button class="btn btn-success" id="btn-complete">✓ 完成项目</button>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>Pandas 数据分析实战训练营 · 纯前端实现</p>
+      <p style="margin-top:6px;">Powered by Vue3 · TailwindCSS · CodeMirror · Pyodide</p>
+    </footer>
+  </div>
+
+  <script type="text/csv" id="csv-data">
+user_id,date,is_promo,amount
+U401,2024-03-01,1,299
+U401,2024-03-02,1,189
+U402,2024-03-01,1,599
+U403,2024-03-01,1,99
+U404,2024-03-02,1,799
+U405,2024-03-01,1,399
+U406,2024-03-02,1,129
+U407,2024-03-01,1,459
+U408,2024-03-02,1,89
+U409,2024-03-01,1,259
+U410,2024-03-02,1,1899
+U401,2024-03-03,1,699
+U402,2024-03-03,1,299
+U411,2024-03-03,1,499
+U412,2024-03-03,1,79
+U413,2024-03-01,1,899
+U414,2024-03-02,1,159
+U415,2024-03-03,1,399
+U416,2024-03-01,1,299
+U417,2024-03-02,1,599
+U418,2024-03-03,1,199
+U501,2024-02-15,0,199
+U502,2024-02-15,0,299
+U503,2024-02-16,0,99
+U504,2024-02-16,0,459
+U505,2024-02-17,0,129
+U506,2024-02-17,0,89
+U501,2024-02-18,0,259
+U502,2024-02-18,0,159
+U507,2024-02-15,0,599
+U508,2024-02-16,0,39
+U509,2024-02-17,0,179
+U510,2024-02-18,0,499
+U511,2024-02-15,0,129
+U512,2024-02-16,0,299
+U513,2024-02-17,0,329
+U514,2024-02-18,0,199
+U515,2024-02-15,0,799
+U516,2024-02-16,0,59
+U517,2024-02-17,0,459
+U518,2024-02-18,0,189
+U519,2024-02-15,0,229
+U520,2024-02-16,0,159
+U521,2024-02-17,0,899
+U522,2024-02-18,0,299
+  </script>
+
+  <script type="text/plain" id="default-code">
+import pandas as pd
+import io
+
+# 数据字段: user_id, date, is_promo, amount
+# is_promo = 1 表示促销活动期，= 0 表示非活动期
+# 目标: 对比活动周 vs 非活动周的销售表现
+
+# 1) 基础概览
+print("=== 基础统计 ===")
+print(f"总记录数: {len(df)}")
+print(f"独立用户数: {df['user_id'].nunique()}")
+
+# 2) 促销 vs 非促销的基本对比
+print("\n=== 促销 vs 非促销 ===")
+print(df.groupby('is_promo').agg(
+    订单数=('amount','count'),
+    总金额=('amount','sum'),
+    客单价=('amount','mean')
+).reset_index())
+
+# 3) 提示下一步: 可计算日销售额、转化率差异、用户活跃天数对比
+  </script>
+
+  <script type="text/plain" id="answer-code">
+import pandas as pd
+import numpy as np
+import io
+
+# ============ 1) 数据准备 ============
+print("=== 1) 数据准备 ===")
+df['date'] = pd.to_datetime(df['date'])
+print(f"总记录: {len(df)}, 独立用户: {df['user_id'].nunique()}")
+
+# ============ 2) 促销 vs 非促销 总览 ============
+print("\n=== 2) 促销 vs 非促销总览 ===")
+summary = df.groupby('is_promo').agg(
+    订单数=('user_id', 'count'),
+    独立用户=('user_id', 'nunique'),
+    总销售额=('amount', 'sum'),
+    客单价=('amount', 'mean'),
+    客单价中位数=('amount', 'median'),
+    最低订单额=('amount', 'min'),
+    最高订单额=('amount', 'max')
+).reset_index()
+summary.columns = ['是否促销', '订单数', '独立用户', '总销售额', '客单价', '客单价中位数', '最低订单额', '最高订单额']
+summary['是否促销'] = summary['是否促销'].map({1: '促销期', 0: '非促销期'})
+show(summary)
+
+# ============ 3) 按日销售额对比 ============
+print("\n=== 3) 按日销售额对比 ===")
+daily = df.groupby(['is_promo', df['date'].dt.date]).agg(
+    订单数=('user_id', 'count'),
+    日销售额=('amount', 'sum'),
+    日客单价=('amount', 'mean')
+).reset_index()
+daily.columns = ['是否促销', '日期', '订单数', '日销售额', '日客单价']
+daily['是否促销'] = daily['是否促销'].map({1: '促销期', 0: '非促销期'})
+show(daily.sort_values('日期'))
+
+# ============ 4) 人均消费对比 ============
+print("\n=== 4) 人均消费对比 ===")
+per_user = df.groupby(['is_promo', 'user_id'])['amount'].sum().reset_index()
+per_user.columns = ['是否促销', 'user_id', '用户消费总额']
+per_user['是否促销'] = per_user['是否促销'].map({1: '促销期', 0: '非促销期'})
+
+per_user_summary = per_user.groupby('是否促销').agg(
+    用户数=('user_id', 'count'),
+    人均消费=('用户消费总额', 'mean'),
+    消费中位数=('用户消费总额', 'median')
+).reset_index()
+show(per_user_summary)
+
+# ============ 5) 订单金额分布 ============
+print("\n=== 5) 订单金额分层分布 ===")
+bins = [0, 100, 200, 500, 1000, float('inf')]
+labels = ['0-100', '100-200', '200-500', '500-1000', '1000+']
+df['金额段'] = pd.cut(df['amount'], bins=bins, labels=labels, right=False)
+
+dist = df.groupby(['is_promo', '金额段']).agg(
+    订单数=('user_id', 'count'),
+    金额合计=('amount', 'sum')
+).reset_index()
+dist['是否促销'] = dist['是否促销'].map({1: '促销期', 0: '非促销期'})
+show(dist)
+
+# ============ 6) 促销提升率 ============
+print("\n=== 6) 促销提升率计算 ===")
+promo_total = df[df['is_promo'] == 1]['amount'].sum()
+non_promo_total = df[df['is_promo'] == 0]['amount'].sum()
+promo_orders = len(df[df['is_promo'] == 1])
+non_promo_orders = len(df[df['is_promo'] == 0])
+promo_users = df[df['is_promo'] == 1]['user_id'].nunique()
+non_promo_users = df[df['is_promo'] == 0]['user_id'].nunique()
+promo_days = df[df['is_promo'] == 1]['date'].dt.date.nunique()
+non_promo_days = df[df['is_promo'] == 0]['date'].dt.date.nunique()
+
+lift = pd.DataFrame([
+    {'指标': '总销售额', '促销期': promo_total, '非促销期': non_promo_total, '提升': f"{(promo_total/promo_days)/(non_promo_total/non_promo_days)-1:.2%}"},
+    {'指标': '日均订单数', '促销期': round(promo_orders/promo_days, 2), '非促销期': round(non_promo_orders/non_promo_days, 2), '提升': f"{(promo_orders/promo_days)/(non_promo_orders/non_promo_days)-1:.2%}"},
+    {'指标': '日均销售额', '促销期': round(promo_total/promo_days, 2), '非促销期': round(non_promo_total/non_promo_days, 2), '提升': f"{(promo_total/promo_days)/(non_promo_total/non_promo_days)-1:.2%}"},
+    {'指标': '日均活跃用户', '促销期': round(promo_users/promo_days, 2), '非促销期': round(non_promo_users/non_promo_days, 2), '提升': f"{(promo_users/promo_days)/(non_promo_users/non_promo_days)-1:.2%}"},
+    {'指标': '客单价', '促销期': round(promo_total/promo_orders, 2), '非促销期': round(non_promo_total/non_promo_orders, 2), '提升': f"{(promo_total/promo_orders)/(non_promo_total/non_promo_orders)-1:.2%}"}
+])
+show(lift)
+
+# ============ 7) 结论 ============
+print("\n=== 7) 分析结论 ===")
+lift_pct = (promo_total/promo_days)/(non_promo_total/non_promo_days)-1
+aov_lift = (promo_total/promo_orders)/(non_promo_total/non_promo_orders)-1
+print(f"- 日均销售额提升: {lift_pct:.2%}")
+print(f"- 客单价提升: {aov_lift:.2%}")
+print(f"- 促销期间日均 {promo_orders/promo_days:.1f} 单，非促销期日均 {non_promo_orders/non_promo_days:.1f} 单")
+if lift_pct > 0.2:
+    print("- 促销活动有效！销售额有明显提升，建议持续优化促销机制。")
+elif lift_pct > 0:
+    print("- 促销活动有一定效果，提升幅度有限，可优化商品组合。")
+else:
+    print("- 促销活动效果不佳，建议复盘促销策略。")
+  </script>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="../common/storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+  <script src="../common/pyodide_setup.js"></script>
+  <script src="../common/code_runner.js"></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.4.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.26.3",
+      "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.1.4",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.2"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view';
+    import { defaultKeymap, history, historyKeymap } from 'codemirror';
+    import { python } from '@codemirror/lang-python';
+    import { oneDark } from '@codemirror/theme-one-dark';
+
+    const PROJECT_ID = '07_promo_compare';
+
+    (function renderTable() {
+      const csvEl = document.getElementById('csv-data');
+      const raw = (csvEl.textContent || '').trim();
+      const lines = raw.split('\n').filter(l => l.trim().length > 0);
+      if (lines.length < 2) return;
+      const tbody = document.getElementById('data-table-body');
+      let html = '';
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        html += '<tr>';
+        for (let j = 0; j < cols.length; j++) {
+          html += '<td>' + (cols[j] || '<span class="muted">-</span>') + '</td>';
+        }
+        html += '</tr>';
+      }
+      tbody.innerHTML = html;
+    })();
+
+    const defaultCode = document.getElementById('default-code').textContent.trim();
+    const answerCode = document.getElementById('answer-code').textContent.trim();
+    const csvText = document.getElementById('csv-data').textContent.trim();
+
+    const savedCode = PandasCampStorage.getCode(PROJECT_ID);
+    const initialCode = (typeof savedCode === 'string' && savedCode.length > 0) ? savedCode : defaultCode;
+
+    const editorContainer = document.getElementById('editor-container');
+
+    const extensions = [
+      lineNumbers(),
+      highlightActiveLine(),
+      history(),
+      keymap.of([...defaultKeymap, ...historyKeymap]),
+      python(),
+      oneDark,
+      EditorView.updateListener.of(function(v) {
+        if (v.docChanged) { debouncedSave(); }
+      })
+    ];
+
+    const state = EditorState.create({
+      doc: (typeof savedCode === 'string' && savedCode.length > 0) ? savedCode : defaultCode,
+      extensions: extensions
+    });
+
+    const editor = new EditorView({
+      state: state,
+      parent: editorContainer
+    });
+
+    let saveTimer = null;
+    function debouncedSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(function() {
+        try {
+          PandasCampStorage.saveCode(PROJECT_ID, editor.state.doc.toString());
+        } catch (e) {}
+      }, 500);
+    }
+
+    const outputElement = document.getElementById('output');
+    const statusElement = document.getElementById('status-pill');
+    const celebrateElement = document.getElementById('celebrate');
+
+    document.getElementById('btn-run').addEventListener('click', function() {
+      const code = editor.state.doc.toString();
+      PandasCampRunner.run(code, csvText, outputElement, statusElement);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', function() {
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: defaultCode }
+      });
+      PandasCampStorage.clearCode(PROJECT_ID);
+      statusElement.textContent = '已重置为默认代码';
+    });
+
+    document.getElementById('btn-answer').addEventListener('click', function() {
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: answerCode }
+      });
+      statusElement.textContent = '已加载参考答案';
+    });
+
+    document.getElementById('btn-complete').addEventListener('click', function() {
+      PandasCampStorage.markComplete(PROJECT_ID);
+      celebrateElement.classList.remove('hidden');
+      statusElement.textContent = '✓ 项目完成';
+    });
+
+    if (PandasCampStorage.isCompleted(PROJECT_ID)) {
+      celebrateElement.classList.remove('hidden');
+      statusElement.textContent = '✓ 已完成';
+    }
+
+    window.__editor = editor;
+  </script>
+</body>
+</html>

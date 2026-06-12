@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="common/style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <section class="hero">
+      <div class="logo">◆ PANDAS · DATA ANALYSIS CAMP</div>
+      <h1>Pandas 数据分析实战训练营</h1>
+      <p class="subtitle">10 个精选实战项目 · 从入门到进阶 · 完全在浏览器中运行代码</p>
+      <p class="slogan">让你从零开始掌握数据分析核心技能 | 真实数据集 | 实时运行代码 | 循序渐进学习 | 完成徽章认证</p>
+      <div class="progress-stat">
+        <span class="num">{{ progress }}</span>
+        <span class="label">/ 10 项目已完成</span>
+        <div class="progress-bar"><span :style="{ width: (progress / 10 * 100 + '%' }"></span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>为什么选择这个训练营？</h2>
+        <p class="sub">无需配置环境，打开浏览器即可开始学习数据分析</p>
+        <div class="intro-grid">
+          <div class="intro-block">
+            <div class="icon">📊</div>
+            <h3>真实业务场景</h3>
+            <p>涵盖购物车放弃、RFM分层、价格异常检测、聚类分析等电商真实案例。</p>
+          </div>
+          <div class="intro-block">
+            <div class="icon">⚡</div>
+            <h3>零配置环境</h3>
+            <p>Pyodide 在浏览器中直接运行 Python，支持 pandas / numpy / sklearn。</p>
+          </div>
+          <div class="intro-block">
+            <div class="icon">🎯</div>
+            <h3>循序渐进路径</h3>
+            <p>入门 → 基础 → 进阶 → 高阶 → 专家，难度逐级提升，技能逐步积累。</p>
+          </div>
+          <div class="intro-block">
+            <div class="icon">🏅</div>
+            <h3>完成徽章</h3>
+            <p>每个项目完成后自动记录到本地，进度条实时更新，可视化学习成果。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" style="background:rgba(17,26,46,0.5);">
+      <div class="container">
+        <h2>10 大项目说明</h2>
+        <p class="sub">全面覆盖数据分析核心技能与常见业务场景</p>
+        <div class="card-grid">
+          <div v-for="p in projects" :key="p.id" class="card">
+            <span v-if="p.completed" class="badge">✓ 已完成</span>
+            <div class="row" style="margin-bottom:10px;">
+              <span class="tag" :class="'tag-' + p.level">{{ p.level }}</span>
+            </div>
+            <h3 class="card-title">{{ p.title }}</h3>
+            <p class="card-desc">{{ p.description }}</p>
+            <button class="btn" @click="go(p.file)">进入项目 →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>学习路径：从入门到专家</h2>
+        <p class="sub">每一步一步，稳步掌握数据分析全栈能力</p>
+        <div class="path-row">
+          <div class="path-cell">
+            <h4 style="color:#6ee7b7;">入门</h4>
+            <p>购物车放弃分析</p>
+            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">熟悉 DataFrame 基础操作</p>
+          </div>
+          <div class="path-cell">
+            <h4 style="color:#93c5fd;">基础</h4>
+            <p>RFM 分层 · 价格异常</p>
+            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">分组 / 聚合 / IQR</p>
+          </div>
+          <div class="path-cell">
+            <h4 style="color:#c4b5fd;">进阶</h4>
+            <p>聚类 · 关联 · 行为序列</p>
+            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">机器学习 + pandas</p>
+          </div>
+          <div class="path-cell">
+            <h4 style="color:#fcd34d;">高阶</h4>
+            <p>情感分析 · 促销对比</p>
+            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">文本 + 统计对比分析</p>
+          </div>
+          <div class="path-cell">
+            <h4 style="color:#fca5a5;">专家</h4>
+            <p>LTV · 实时特征</p>
+            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">复杂指标体系</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Pandas 数据分析实战训练营 · 纯前端实现</p>
+      <p style="margin-top:6px;">
+      本地预览：在项目根目录执行 <code style="background:#18223f;padding:2px 6px;border-radius:4px;">python -m http.server</code>
+      &nbsp;|&nbsp; 部署：可直接上传到 Cloudflare Pages
+      </p>
+      <p style="margin-top:10px;color:#6e7b99;">Powered by Vue3 · TailwindCSS · CodeMirror · Pyodide</p>
+    </footer>
+  </div>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="common/storage.js"></script>
+  <script>
+    const { createApp, onMounted, ref, computed } = Vue;
+    createApp({
+      setup() {
+        const projects = ref([
+          { id: '01_cart_abandon', file: 'projects/01_cart_abandon.html', title: '购物车放弃分析', level: '入门', description: '分析用户加购未付款行为，计算放弃率、时段趋势、核心原因指标。', completed: false },
+          { id: '02_rfm_analysis', file: 'projects/02_rfm_analysis.html', title: 'RFM 用户分层', level: '基础', description: '基于消费金额、频率、最近购买时间做用户价值分层（重要价值/流失预警等）。', completed: false },
+          { id: '03_price_anomaly', file: 'projects/03_price_anomaly.html', title: '价格异常检测', level: '基础', description: '使用 IQR、标准差检测商品价格异常，适合风控、定价场景。', completed: false },
+          { id: '04_kmeans_cluster', file: 'projects/04_kmeans_cluster.html', title: 'KMeans 用户聚类', level: '进阶', description: '无监督学习自动分群，提取用户特征，实现精准运营。', completed: false },
+          { id: '05_basket_analysis', file: 'projects/05_basket_analysis.html', title: '购物篮关联分析', level: '进阶', description: 'Apriori 思想计算商品关联支持度，挖掘"买 A 必买 B"的搭配规律。', completed: false },
+          { id: '06_behavior_sequence', file: 'projects/06_behavior_sequence.html', title: '用户行为序列特征', level: '进阶', description: '分析用户点击/加购/支付行为序列，计算访问间隔、转化路径。', completed: false },
+          { id: '07_promo_compare', file: 'projects/07_promo_compare.html', title: '促销活动效果对比', level: '高阶', description: '对比活动周 vs 非活动周的销售额、客单价、转化率差异。', completed: false },
+          { id: '08_sentiment_analysis', file: 'projects/08_sentiment_analysis.html', title: '评论情感分析', level: '高阶', description: '基于评论评分与文本做情感倾向分析，挖掘用户满意度。', completed: false },
+          { id: '09_ltv_calculation', file: 'projects/09_ltv_calculation.html', title: '用户 LTV 生命周期价值', level: '专家', description: '计算 30 天 LTV、累计贡献，评估用户长期商业价值。', completed: false },
+          { id: '10_realtime_feature', file: 'projects/10_realtime_feature.html', title: '实时特征滚动窗口', level: '专家', description: '时间窗口滚动统计，模拟实时推荐/风控特征工程。', completed: false }
+        ]);
+
+        const progress = ref(0);
+
+        function refresh() {
+          progress.value = PandasCampStorage.getProgress();
+          projects.value.forEach(function(p) {
+            p.completed = PandasCampStorage.isCompleted(p.id);
+          });
+        }
+        onMounted(refresh);
+
+        return {
+          projects, progress,
+          go: function(f) { window.location.href = '../' + f; }
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

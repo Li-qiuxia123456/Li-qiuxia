@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>评论情感分析 · Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+</head>
+<body>
+  <div id="app">
+    <nav class="top-nav">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="status-pill" id="status-pill">准备就绪</span>
+      </div>
+    </nav>
+
+    <header class="project-header">
+      <div class="meta">
+        <span class="tag tag-高阶">高阶</span>
+        <span class="muted">项目 08 / 10</span>
+      </div>
+      <h1>评论情感分析</h1>
+      <p class="description">基于评论评分与文本做情感倾向分析，挖掘用户满意度。通过本项目熟悉 Pandas 的文本分析、关键词匹配、分类统计。</p>
+    </header>
+
+    <main class="project-main">
+
+      <div id="celebrate" class="celebrate hidden">
+        🎉 恭喜完成《评论情感分析》项目！已记录到你的学习进度。
+      </div>
+
+      <section class="panel">
+        <h3>📋 数据集字段说明</h3>
+        <div class="field-list">
+          <div class="field-item"><span class="f-name">rating</span><span class="f-desc">用户评分（1-5）</span></div>
+          <div class="field-item"><span class="f-name">comment_text</span><span class="f-desc">评论内容文本</span></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>🔍 数据预览（共 40 条）</h3>
+        <div class="data-scroll">
+          <table class="data-table" id="data-table">
+            <thead>
+              <tr>
+                <th>rating</th>
+                <th>comment_text</th>
+              </tr>
+            </thead>
+            <tbody id="data-table-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>💻 代码编辑器</h3>
+        <div id="editor-container" class="cm-container"></div>
+        <div class="btn-row">
+          <button class="btn" id="btn-run">▶ 运行代码</button>
+          <button class="btn btn-secondary" id="btn-reset">重置代码</button>
+          <button class="btn btn-secondary" id="btn-answer">查看参考答案</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>📤 输出结果</h3>
+        <div id="output" class="output-console"></div>
+      </section>
+
+      <section class="panel" style="text-align:center;">
+        <h3>🏅 项目完成</h3>
+        <p class="muted" style="margin-bottom:14px;font-size:14px;">如果你已经成功运行代码并获得分析结果，点击下方按钮标记项目完成。</p>
+        <button class="btn btn-success" id="btn-complete">✓ 完成项目</button>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <p>Pandas 数据分析实战训练营 · 纯前端实现</p>
+      <p style="margin-top:6px;">Powered by Vue3 · TailwindCSS · CodeMirror · Pyodide</p>
+    </footer>
+  </div>
+
+  <script type="text/csv" id="csv-data">
+rating,comment_text
+5,非常满意！商品质量很好，物流也很快，会回购的。
+5,超出预期！包装精美，使用体验一流。
+4,整体不错，就是价格稍微高了一点，其他都满意。
+5,买第三次了，老顾客一直信任。
+3,一般般，能用但没什么惊喜。
+2,有点失望，和图片上不太一样。
+5,非常好的购物体验，客服态度也很好。
+4,不错，性价比还可以。
+5,五星好评，值得推荐给朋友。
+1,太差了，质量有问题，联系客服也没解决。
+3,马马虎虎，能用就行。
+4,还可以吧，没什么大问题。
+5,很满意！比想象的好很多。
+2,不推荐，做工比较粗糙。
+5,太好了，一次完美的购物。
+4,总体满意，细节方面可以再加强。
+5,非常喜欢，以后还会再来。
+3,普普通通，没有惊喜也没有失望。
+5,值得！这个价格能买到这样的品质很划算。
+1,非常不满！物流慢，客服不回复，商品也坏了。
+4,还不错，性价比高。
+5,很好的商品，很喜欢。
+2,不太满意，尺寸和描述不太符合。
+5,非常满意的一次购物！
+4,一般满意，期待下次能更好。
+5,用起来很顺手，推荐。
+3,普通的商品，没有亮点。
+5,买了很多次了，老顾客。
+1,质量太差，完全不符合描述。
+5,好评，各方面都满意。
+4,还可以的，给个四星。
+5,收到之后很惊喜，做工精细。
+3,还好吧，不算太差。
+5,已经第三次购买，一如既往的好。
+4,商品质量不错，服务也很好。
+2,一般，不值这个价。
+5,很好，比之前买的都好用。
+5,非常满意，五星好评。
+4,不错，只是包装简陋了点。
+5,很好，值得推荐。
+  </script>
+
+  <script type="text/plain" id="default-code">
+import pandas as pd
+import io
+from collections import Counter
+import re
+
+# 数据字段: rating (1-5), comment_text
+# 目标: 基于评分与文本分析用户情感倾向
+
+# 1) 基础概览
+print("=== 基础统计 ===")
+print(f"评论总数: {len(df)}")
+print(f"平均评分: {df['rating'].mean():.2f}")
+
+print("\n评分分布:")
+rating_dist = df['rating'].value_counts().sort_index().reset_index()
+rating_dist.columns = ['评分', '评论数']
+rating_dist['占比'] = rating_dist['评论数'] / len(df)
+show(rating_dist)
+
+# 2) 简单情感分类
+# 评分 4-5: 好评; 3: 中性; 1-2: 差评
+print("\n提示: 下一步可以按照评分进行情感分类，并提取关键词分析")
+  </script>
+
+  <script type="text/plain" id="answer-code">
+import pandas as pd
+import io
+from collections import Counter
+import re
+
+# ============ 1) 基础概览 ============
+print("=== 1) 基础概览 ===")
+print(f"评论总数: {len(df)}")
+print(f"平均评分: {df['rating'].mean():.2f}")
+print(f"评分中位数: {df['rating'].median()}")
+
+rating_dist = df['rating'].value_counts().sort_index().reset_index()
+rating_dist.columns = ['评分', '评论数']
+rating_dist['占比'] = rating_dist['评论数'] / len(df)
+print("\n=== 评分分布 ===")
+show(rating_dist)
+
+# ============ 2) 情感分类 ============
+print("\n=== 2) 情感分类 ===")
+def classify(r):
+    if r >= 4: return '好评'
+    elif r == 3: return '中性'
+    else: return '差评'
+
+df['sentiment'] = df['rating'].apply(classify)
+sentiment_dist = df['sentiment'].value_counts().reset_index()
+sentiment_dist.columns = ['情感分类', '评论数']
+sentiment_dist['占比'] = sentiment_dist['评论数'] / len(df)
+show(sentiment_dist)
+
+# ============ 3) 好评 vs 差评关键词分析 ============
+print("\n=== 3) 好评高频词 ===")
+positive_words = ['满意', '好', '不错', '喜欢', '推荐', '值得', '五星', '非常', '回购',
+                   '老顾客', '惊喜', '性价比', '体验', '质量', '很好', '精美', '顺手', '一流', '划算',
+                   '客服', '物流', '做工', '精细']
+negative_words = ['差', '失望', '不好', '问题', '不推荐', '太', '坏了', '慢', '不符合',
+                   '粗', '不值', '质量差', '烂', '退货', '欺骗', '糟糕', '不回复', '没解决', '糙']
+
+def extract_words(text, word_list):
+    found = []
+    for w in word_list:
+        if w in str(text):
+            found.append(w)
+    return found
+
+pos_comments = df[df['sentiment'] == '好评']['comment_text']
+neg_comments = df[df['sentiment'] == '差评']['comment_text']
+neu_comments = df[df['sentiment'] == '中性']['comment_text']
+
+pos_hits = Counter()
+for text in pos_comments:
+    for w in extract_words(text, positive_words):
+        pos_hits[w] += 1
+
+pos_kw_df = pd.DataFrame([
+    {'关键词': w, '出现次数': c, '评论占比': f"{c/len(pos_comments):.2%}"}
+    for w, c in pos_hits.most_common(15)
+]).reset_index(drop=True)
+show(pos_kw_df)
+
+print("\n=== 4) 差评高频词 ===")
+neg_hits = Counter()
+for text in neg_comments:
+    for w in extract_words(text, negative_words):
+        neg_hits[w] += 1
+
+neg_kw_df = pd.DataFrame([
+    {'关键词': w, '出现次数': c, '评论占比': f"{c/max(len(neg_comments),1):.2%}"}
+    for w, c in neg_hits.most_common(10)
+]).reset_index(drop=True)
+show(neg_kw_df)
+
+# ============ 5) 评论长度分析 ============
+print("\n=== 5) 评论长度分析 ===")
+df['comment_len'] = df['comment_text'].apply(lambda x: len(str(x)))
+len_by_sent = df.groupby('sentiment').agg(
+    评论数=('comment_text', 'count'),
+    平均字数=('comment_len', 'mean'),
+    字数中位数=('comment_len', 'median'),
+    最长评论=('comment_len', 'max')
+).reset_index()
+len_by_sent.columns = ['情感', '评论数', '平均字数', '字数中位数', '最长评论']
+show(len_by_sent)
+
+# ============ 6) 文本情感倾向评分 ============
+print("\n=== 6) 基于关键词的文本情感评分 ===")
+# 简单的基于关键词匹配的情感评分
+def text_sentiment_score(text):
+    score = 0
+    text = str(text)
+    for w in positive_words:
+        if w in text: score += 1
+    for w in negative_words:
+        if w in text: score -= 1.5
+    return score
+
+df['text_score'] = df['comment_text'].apply(text_sentiment_score)
+text_sent = df.groupby('sentiment').agg(
+    平均文本评分=('text_score', 'mean'),
+    评分中位数=('text_score', 'median'),
+    最低评分=('text_score', 'min'),
+    最高评分=('text_score', 'max')
+).reset_index()
+show(text_sent)
+
+# ============ 7) 评分 vs 文本情感的一致性检查 ============
+print("\n=== 7) 高分差评 & 低分好评（异常检测）===")
+# 评分高但文本负面，或评分低但文本正面
+high_rating_low_text = df[(df['rating'] >= 4) & (df['text_score'] < 0)]
+low_rating_high_text = df[(df['rating'] <= 2) & (df['text_score'] > 0)]
+
+if len(high_rating_low_text) > 0:
+    print(f"发现 {len(high_rating_low_text)} 条高分但文本负面的评论:")
+    show(high_rating_low_text[['rating','comment_text','text_score']].head(5))
+else:
+    print("未发现高分但文本负面的评论")
+
+if len(low_rating_high_text) > 0:
+    print(f"\n发现 {len(low_rating_high_text)} 条低分但文本正面的评论:")
+    show(low_rating_high_text[['rating','comment_text','text_score']].head(5))
+else:
+    print("未发现低分但文本正面的评论")
+
+# ============ 8) 综合满意度报告 ============
+print("\n=== 8) 综合满意度报告 ===")
+good_pct = len(df[df['rating'] >= 4]) / len(df)
+bad_pct = len(df[df['rating'] <= 2]) / len(df)
+neu_pct = len(df[df['rating'] == 3]) / len(df)
+
+print(f"- 好评率: {good_pct:.2%}")
+print(f"- 差评率: {bad_pct:.2%}")
+print(f"- 中性率: {neu_pct:.2%}")
+print(f"- 平均评分: {df['rating'].mean():.2f} / 5")
+
+if good_pct > 0.7:
+    print("- 用户总体满意度高，好评率超过70%。")
+elif good_pct > 0.5:
+    print("- 用户满意度中等，仍有提升空间。")
+else:
+    print("- 用户满意度偏低，需要重点关注差评问题。")
+
+if bad_pct > 0.1:
+    print(f"- 差评率偏高 ({bad_pct:.2%})，建议重点分析差评提到的问题关键词。")
+  </script>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="../common/storage.js"></script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+  <script src="../common/pyodide_setup.js"></script>
+  <script src="../common/code_runner.js"></script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.4.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.26.3",
+      "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.1.4",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.2"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view';
+    import { defaultKeymap, history, historyKeymap } from 'codemirror';
+    import { python } from '@codemirror/lang-python';
+    import { oneDark } from '@codemirror/theme-one-dark';
+
+    const PROJECT_ID = '08_sentiment_analysis';
+
+    (function renderTable() {
+      const csvEl = document.getElementById('csv-data');
+      const raw = (csvEl.textContent || '').trim();
+      const lines = raw.split('\n').filter(l => l.trim().length > 0);
+      if (lines.length < 2) return;
+      const tbody = document.getElementById('data-table-body');
+      let html = '';
+      for (let i = 1; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        html += '<tr>';
+        for (let j = 0; j < cols.length; j++) {
+          html += '<td>' + (cols[j] || '<span class="muted">-</span>') + '</td>';
+        }
+        html += '</tr>';
+      }
+      tbody.innerHTML = html;
+    })();
+
+    const defaultCode = document.getElementById('default-code').textContent.trim();
+    const answerCode = document.getElementById('answer-code').textContent.trim();
+    const csvText = document.getElementById('csv-data').textContent.trim();
+
+    const savedCode = PandasCampStorage.getCode(PROJECT_ID);
+    const initialCode = (typeof savedCode === 'string' && savedCode.length > 0) ? savedCode : defaultCode;
+
+    const editorContainer = document.getElementById('editor-container');
+
+    const extensions = [
+      lineNumbers(),
+      highlightActiveLine(),
+      history(),
+      keymap.of([...defaultKeymap, ...historyKeymap]),
+      python(),
+      oneDark,
+      EditorView.updateListener.of(function(v) {
+        if (v.docChanged) { debouncedSave(); }
+      })
+    ];
+
+    const state = EditorState.create({
+      doc: (typeof savedCode === 'string' && savedCode.length > 0) ? savedCode : defaultCode,
+      extensions: extensions
+    });
+
+    const editor = new EditorView({
+      state: state,
+      parent: editorContainer
+    });
+
+    let saveTimer = null;
+    function debouncedSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(function() {
+        try {
+          PandasCampStorage.saveCode(PROJECT_ID, editor.state.doc.toString());
+        } catch (e) {}
+      }, 500);
+    }
+
+    const outputElement = document.getElementById('output');
+    const statusElement = document.getElementById('status-pill');
+    const celebrateElement = document.getElementById('celebrate');
+
+    document.getElementById('btn-run').addEventListener('click', function() {
+      const code = editor.state.doc.toString();
+      PandasCampRunner.run(code, csvText, outputElement, statusElement);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', function() {
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: defaultCode }
+      });
+      PandasCampStorage.clearCode(PROJECT_ID);
+      statusElement.textContent = '已重置为默认代码';
+    });
+
+    document.getElementById('btn-answer').addEventListener('click', function() {
+      editor.dispatch({
+        changes: { from: 0, to: editor.state.doc.length, insert: answerCode }
+      });
+      statusElement.textContent = '已加载参考答案';
+    });
+
+    document.getElementById('btn-complete').addEventListener('click', function() {
+      PandasCampStorage.markComplete(PROJECT_ID);
+      celebrateElement.classList.remove('hidden');
+      statusElement.textContent = '✓ 项目完成';
+    });
+
+    if (PandasCampStorage.isCompleted(PROJECT_ID)) {
+      celebrateElement.classList.remove('hidden');
+      statusElement.textContent = '✓ 已完成';
+    }
+
+    window.__editor = editor;
+  </script>
+</body>
+</html>

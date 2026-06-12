@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RFM 用户分层 · Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.2.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.9.0",
+      "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.1.0",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.0"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航栏 -->
+    <nav class="top-nav">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="status-pill" id="status-pill">准备就绪</span>
+      </div>
+    </nav>
+
+    <!-- 项目标题区 -->
+    <header class="project-header">
+      <div class="meta">
+        <span class="tag tag-基础">基础</span>
+        <span class="muted">项目 02 / 10</span>
+      </div>
+      <h1>RFM 用户分层</h1>
+      <p class="description">基于消费金额、频率、最近购买时间做用户价值分层（重要价值/流失预警等）。</p>
+    </header>
+
+    <main class="project-main">
+      <!-- 完成状态横幅 (Vue 控制) -->
+      <div v-if="completed" class="celebrate">
+        🎉 你已完成本项目！可以继续探索或参考参考答案学习。
+      </div>
+
+      <!-- 数据集说明 -->
+      <section class="panel">
+        <h3>📋 数据集字段说明</h3>
+        <div class="field-list">
+          <div class="field-item">
+            <span class="f-name">user_id</span><span class="f-desc">用户 ID（文本）</span>
+          </div>
+          <div class="field-item">
+            <span class="f-name">order_date</span><span class="f-desc">下单日期（YYYY-MM-DD）</span>
+          </div>
+          <div class="field-item">
+            <span class="f-name">amount</span><span class="f-desc">订单金额（数值）</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 数据预览 -->
+      <section class="panel">
+        <h3>🔍 数据预览</h3>
+        <div class="data-scroll">
+          <table class="data-table" id="data-preview">
+            <thead>
+              <tr>
+                <th>user_id</th>
+                <th>order_date</th>
+                <th>amount</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 代码编辑器 -->
+      <section class="panel">
+        <h3>⌨ 代码编辑器</h3>
+        <div class="cm-container">
+          <div id="editor"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn" id="run-btn">▶ 运行代码</button>
+          <button class="btn btn-secondary" id="reset-btn">↻ 重置默认代码</button>
+          <button class="btn btn-secondary" id="answer-btn">📖 查看参考答案</button>
+          <span class="spacer"></span>
+          <button class="btn btn-success" id="complete-btn">✓ 完成项目</button>
+        </div>
+      </section>
+
+      <!-- 输出控制台 -->
+      <section class="panel">
+        <h3>💻 输出控制台</h3>
+        <div class="output-console" id="output-console">
+          <pre class="text-output muted">（点击"运行代码"开始执行）</pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- CSV 原始数据 -->
+  <script id="csv-data" type="text/csv">
+user_id,order_date,amount
+U100,2024-02-28,299.0
+U101,2024-02-15,159.0
+U102,2024-01-10,899.0
+U103,2024-03-01,59.0
+U100,2024-03-02,189.0
+U101,2024-03-03,99.0
+U104,2024-02-05,459.0
+U105,2024-01-20,1299.0
+U102,2024-02-22,299.0
+U106,2024-03-04,89.0
+U100,2024-03-05,399.0
+U103,2024-02-18,259.0
+U107,2024-01-05,2299.0
+U104,2024-03-01,599.0
+U101,2024-02-28,329.0
+U108,2024-02-10,129.0
+U105,2024-03-02,459.0
+U109,2024-01-15,899.0
+U106,2024-02-25,189.0
+U110,2024-03-03,59.0
+U100,2024-02-10,229.0
+U102,2024-03-04,599.0
+U107,2024-02-18,1299.0
+U103,2024-01-28,399.0
+U108,2024-03-05,259.0
+U111,2024-02-02,799.0
+U104,2024-01-15,299.0
+U109,2024-02-20,459.0
+U112,2024-03-01,199.0
+U105,2024-02-08,799.0
+U110,2024-01-20,459.0
+U113,2024-02-25,329.0
+U100,2024-01-05,599.0
+U114,2024-03-03,89.0
+U101,2024-01-25,299.0
+U106,2024-03-05,259.0
+U115,2024-02-12,189.0
+U107,2024-03-04,1899.0
+U102,2024-02-05,1299.0
+U116,2024-03-02,49.0
+  </script>
+
+  <!-- 默认代码 -->
+  <script id="default-code" type="text/plain">
+import pandas as pd
+import io
+
+# df 变量已由页面预加载，字段: user_id, order_date, amount
+# RFM 分析目标：
+# R - Recency (最近购买距今天数，越小越好)
+# F - Frequency (购买频率，越大越好)
+# M - Monetary (消费总金额，越大越好)
+
+# 第一步：数据基础概览
+print("数据总记录:", len(df))
+print("独立用户数:", df['user_id'].nunique())
+print("\n数据预览:")
+show(df.head(10))
+
+# 第二步：计算 RFM
+# 将 order_date 转为日期类型
+df['order_date'] = pd.to_datetime(df['order_date'])
+# 以数据中最大日期作为"今天"
+today = df['order_date'].max()
+print("\n基准日期(今天):", today.date())
+
+rfm = df.groupby('user_id').agg(
+    Recency=('order_date', lambda x: (today - x.max()).days),
+    Frequency=('order_date', 'count'),
+    Monetary=('amount', 'sum')
+).reset_index()
+print("\nRFM 表预览:")
+show(rfm.head())
+
+# 第三步：查看每个维度的分布
+print("\n=== RFM 统计描述 ===")
+show(rfm.describe())
+  </script>
+
+  <!-- 参考答案代码 -->
+  <script id="answer-code" type="text/plain">
+import pandas as pd
+import io
+
+# 1) 基础数据预处理
+df['order_date'] = pd.to_datetime(df['order_date'])
+today = df['order_date'].max()
+
+# 2) 计算 RFM
+rfm = df.groupby('user_id').agg(
+    Recency=('order_date', lambda x: (today - x.max()).days),
+    Frequency=('order_date', 'count'),
+    Monetary=('amount', 'sum')
+).reset_index()
+
+print("=== RFM 汇总 ===")
+print(f"用户总数: {len(rfm)}, 订单总数: {len(df)}")
+print(f"总营业额: {rfm['Monetary'].sum():.2f}")
+show(rfm.describe())
+
+# 3) 使用分位数给每个维度打分 (1-5 分)
+# Recency 越小越好，所以需要反转
+def r_score(x, q):
+    if x <= q[0.2]: return 5
+    elif x <= q[0.4]: return 4
+    elif x <= q[0.6]: return 3
+    elif x <= q[0.8]: return 2
+    else: return 1
+
+def fm_score(x, q):
+    if x <= q[0.2]: return 1
+    elif x <= q[0.4]: return 2
+    elif x <= q[0.6]: return 3
+    elif x <= q[0.8]: return 4
+    else: return 5
+
+r_q = rfm['Recency'].quantile([0.2, 0.4, 0.6, 0.8])
+f_q = rfm['Frequency'].quantile([0.2, 0.4, 0.6, 0.8])
+m_q = rfm['Monetary'].quantile([0.2, 0.4, 0.6, 0.8])
+
+rfm['R_score'] = rfm['Recency'].apply(lambda x: r_score(x, r_q))
+rfm['F_score'] = rfm['Frequency'].apply(lambda x: fm_score(x, f_q))
+rfm['M_score'] = rfm['Monetary'].apply(lambda x: fm_score(x, m_q))
+rfm['RFM_score'] = rfm['R_score'] + rfm['F_score'] + rfm['M_score']
+
+# 4) 用户分层
+def segment(row):
+    r, f, m = row['R_score'], row['F_score'], row['M_score']
+    if r >= 4 and f >= 4 and m >= 4: return '重要价值客户'
+    elif r <= 2 and f >= 4 and m >= 4: return '重要挽留客户'
+    elif r >= 4 and f <= 2 and m <= 2: return '新客户'
+    elif r <= 2 and f <= 2 and m <= 2: return '流失预警客户'
+    elif r >= 4 and f >= 3 and m >= 3: return '活跃客户'
+    else: return '一般客户'
+
+rfm['segment'] = rfm.apply(segment, axis=1)
+
+print("\n=== 用户分层结果 ===")
+seg_count = rfm.groupby('segment').agg(
+    用户数=('user_id', 'count'),
+    平均消费=('Monetary', 'mean'),
+    平均频率=('Frequency', 'mean')
+).reset_index()
+seg_count = seg_count.sort_values('用户数', ascending=False)
+show(seg_count)
+
+print("\n=== 各层用户贡献占比 ===")
+total_monetary = rfm['Monetary'].sum()
+seg_monetary = rfm.groupby('segment')['Monetary'].sum().sort_values(ascending=False).reset_index()
+seg_monetary.columns = ['用户分层', '总消费金额']
+seg_monetary['金额占比'] = seg_monetary['总消费金额'] / total_monetary
+show(seg_monetary)
+
+# 5) 展示每个分层的典型用户 Top3
+print("\n=== 各分层的典型代表用户 ===")
+for seg in seg_count['segment']:
+    print(f"\n---- {seg} ----")
+    subset = rfm[rfm['segment'] == seg].sort_values('Monetary', ascending=False).head(3)
+    show(subset[['user_id', 'Recency', 'Frequency', 'Monetary', 'RFM_score']])
+  </script>
+
+  <!-- Pyodide -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+  <!-- 公共模块 -->
+  <script src="../common/storage.js"></script>
+  <script src="../common/pyodide_setup.js"></script>
+  <script src="../common/code_runner.js"></script>
+  <!-- Vue3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <script type="module">
+    import { EditorState } from '@codemirror/state';
+    import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view';
+    import { defaultKeymap, history, historyKeymap } from 'codemirror';
+    import { python } from '@codemirror/lang-python';
+    import { oneDark } from '@codemirror/theme-one-dark';
+
+    const PROJECT_ID = '02_rfm_analysis';
+    const csvText = document.getElementById('csv-data').textContent.trim();
+    const defaultCode = document.getElementById('default-code').textContent.trim();
+    const answerCode = document.getElementById('answer-code').textContent.trim();
+
+    // ====== 数据预览表格渲染 ======
+    (function renderDataPreview() {
+      const tbody = document.querySelector('#data-preview tbody');
+      const lines = csvText.split('\n').slice(1); // skip header
+      const frag = document.createDocumentFragment();
+      lines.slice(0, 30).forEach(function(line) {
+        const cells = line.split(',');
+        const tr = document.createElement('tr');
+        cells.forEach(function(c) {
+          const td = document.createElement('td');
+          td.textContent = c;
+          tr.appendChild(td);
+        });
+        frag.appendChild(tr);
+      });
+      tbody.appendChild(frag);
+    })();
+
+    // ====== Vue 实例（仅用于完成状态显示） ======
+    const { createApp, ref, onMounted } = Vue;
+    createApp({
+      setup() {
+        const completed = ref(false);
+        onMounted(function() {
+          completed.value = PandasCampStorage.isCompleted(PROJECT_ID);
+        });
+        return { completed };
+      }
+    }).mount('#app');
+
+    // ====== CodeMirror ======
+    const initialCode = PandasCampStorage.getCode(PROJECT_ID) || defaultCode;
+    const view = new EditorView({
+      doc: initialCode,
+      extensions: [
+        lineNumbers(),
+        highlightActiveLine(),
+        python(),
+        oneDark,
+        history(),
+        keymap.of([...defaultKeymap, ...historyKeymap]),
+        EditorView.updateListener.of(function(update) {
+          if (update.docChanged) {
+            PandasCampStorage.saveCode(PROJECT_ID, view.state.doc.toString());
+          }
+        })
+      ],
+      parent: document.getElementById('editor')
+    });
+
+    function setEditorContent(text) {
+      view.dispatch({
+        changes: { from: 0, to: view.state.doc.length, insert: text }
+      });
+    }
+
+    // ====== 按钮事件 ======
+    const outputEl = document.getElementById('output-console');
+    const statusPill = document.getElementById('status-pill');
+
+    document.getElementById('run-btn').addEventListener('click', function() {
+      const code = view.state.doc.toString();
+      PandasCampRunner.run(code, csvText, outputEl, statusPill);
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', function() {
+      setEditorContent(defaultCode);
+      PandasCampStorage.saveCode(PROJECT_ID, defaultCode);
+      outputEl.innerHTML = '<pre class="text-output muted">（已重置为默认代码）</pre>';
+    });
+
+    document.getElementById('answer-btn').addEventListener('click', function() {
+      setEditorContent(answerCode);
+      PandasCampStorage.saveCode(PROJECT_ID, answerCode);
+      outputEl.innerHTML = '<pre class="text-output muted">（已切换为参考答案代码，点击运行按钮查看结果）</pre>';
+    });
+
+    document.getElementById('complete-btn').addEventListener('click', function() {
+      PandasCampStorage.markComplete(PROJECT_ID);
+      outputEl.innerHTML = '<div class="celebrate" style="background:linear-gradient(135deg, rgba(16,185,129,0.15), rgba(59,130,246,0.15)); border:1px solid #10b981; border-radius:14px; padding:18px; text-align:center; margin-bottom:22px; color:#10b981; font-weight:600;">🎉 恭喜完成项目！进度已保存到本地。</div>' + outputEl.innerHTML;
+      statusPill.textContent = '✓ 已完成';
+      // 触发 Vue 重新渲染完成状态
+      const banner = document.querySelector('.celebrate');
+      if (!banner || banner.innerHTML.indexOf('完成本项目') === -1) {
+        // 重新刷新页面的完成状态（通过重新挂载 Vue 的方式更简单：刷新页面）
+        setTimeout(function() { location.reload(); }, 1200);
+      }
+    });
+
+    // 预加载 Pyodide（不阻塞 UI）
+    setTimeout(function() {
+      statusPill.textContent = 'Python 环境加载中...';
+      window.loadPyodideRuntime().then(function() {
+        statusPill.textContent = '准备就绪';
+      }).catch(function(err) {
+        statusPill.textContent = '环境加载失败';
+        console.error(err);
+      });
+    }, 50);
+  </script>
+</body>
+</html>
