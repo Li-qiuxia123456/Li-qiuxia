@@ -3,99 +3,180 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pandas 数据分析实战训练营</title>
+  <title>Pandas 数据分析实战训练营 | 从入门到专家</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="common/storage.js"></script>
   <link rel="stylesheet" href="common/style.css" />
 </head>
 <body>
   <div id="app">
 
-    <section class="hero">
-      <div class="logo">◆ PANDAS · DATA ANALYSIS CAMP</div>
+    <!-- 顶部导航 -->
+    <nav class="navbar">
+      <div class="inner">
+        <div class="brand">
+          <span class="brand-icon">🐼</span>
+          <span>Pandas 训练营</span>
+        </div>
+        <div class="nav-links">
+          <a href="#hero">首页</a>
+          <a href="#lessons">课程模块</a>
+          <a href="#projects">10 大项目</a>
+          <a href="#path">学习路径</a>
+        </div>
+        <span class="nav-progress">✓ {{ progress }}/10 完成</span>
+      </div>
+    </nav>
+
+    <!-- Hero 区 -->
+    <section class="hero" id="hero">
+      <div class="logo">🐼 10 PROJECTS · PANDAS CAMP</div>
       <h1>Pandas 数据分析实战训练营</h1>
       <p class="subtitle">10 个精选实战项目 · 从入门到进阶 · 完全在浏览器中运行代码</p>
-      <p class="slogan">让你从零开始掌握数据分析核心技能 | 真实数据集 | 实时运行代码 | 循序渐进学习 | 完成徽章认证</p>
+      <p class="slogan">从零开始掌握数据分析核心技能 | 真实数据集 | 实时运行代码 | 循序渐进学习 | 完成徽章认证</p>
       <div class="progress-stat">
         <span class="num">{{ progress }}</span>
         <span class="label">/ 10 项目已完成</span>
-        <div class="progress-bar"><span :style="{ width: (progress / 10 * 100 + '%' }"></span></div>
+        <div class="progress-bar"><span :style="{ width: (progress / 10 * 100) + '%' }"></span></div>
+      </div>
+
+      <div class="stats-grid" style="max-width: 900px; margin: 40px auto 0;">
+        <div class="stat-card">
+          <div class="stat-num">10</div>
+          <div class="stat-label">实战项目</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">50+</div>
+          <div class="stat-label">知识点覆盖</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">100%</div>
+          <div class="stat-label">浏览器内运行</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num">5</div>
+          <div class="stat-label">难度等级</div>
+        </div>
       </div>
     </section>
 
-    <section class="section">
+    <!-- 课程介绍 -->
+    <section class="section" id="lessons">
       <div class="container">
-        <h2>为什么选择这个训练营？</h2>
-        <p class="sub">无需配置环境，打开浏览器即可开始学习数据分析</p>
-        <div class="intro-grid">
-          <div class="intro-block">
+        <h2>课程内容模块</h2>
+        <p class="sub">系统覆盖数据分析必备技能，每个模块配套实战项目</p>
+        <div class="feature-grid">
+          <div class="feature-card">
             <div class="icon">📊</div>
-            <h3>真实业务场景</h3>
-            <p>涵盖购物车放弃、RFM分层、价格异常检测、聚类分析等电商真实案例。</p>
+            <h3>Pandas 基础与数据处理</h3>
+            <p>DataFrame 基础操作、数据筛选、排序、分组聚合、缺失值处理、类型转换，掌握数据分析基础。</p>
           </div>
-          <div class="intro-block">
-            <div class="icon">⚡</div>
-            <h3>零配置环境</h3>
-            <p>Pyodide 在浏览器中直接运行 Python，支持 pandas / numpy / sklearn。</p>
+          <div class="feature-card">
+            <div class="icon">🏷️</div>
+            <h3>用户分层与 RFM 分析</h3>
+            <p>基于消费行为将用户分群，识别重要价值用户、流失预警用户，制定精细化运营策略。</p>
           </div>
-          <div class="intro-block">
+          <div class="feature-card">
+            <div class="icon">⚠️</div>
+            <h3>异常检测与风控分析</h3>
+            <p>使用 IQR、标准差、Z-score 等统计方法检测数据异常，适用于商品定价、风控场景。</p>
+          </div>
+          <div class="feature-card">
             <div class="icon">🎯</div>
-            <h3>循序渐进路径</h3>
-            <p>入门 → 基础 → 进阶 → 高阶 → 专家，难度逐级提升，技能逐步积累。</p>
+            <h3>机器学习聚类分析</h3>
+            <p>结合 sklearn 进行 KMeans 聚类，将用户自动分群，基于轮廓系数评估聚类效果。</p>
           </div>
-          <div class="intro-block">
-            <div class="icon">🏅</div>
-            <h3>完成徽章</h3>
-            <p>每个项目完成后自动记录到本地，进度条实时更新，可视化学习成果。</p>
+          <div class="feature-card">
+            <div class="icon">🛒</div>
+            <h3>购物篮与关联分析</h3>
+            <p>Apriori 思想计算商品共现频率，挖掘"买 A 必买 B"的搭配规律，助力交叉销售。</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">📈</div>
+            <h3>行为序列与转化分析</h3>
+            <p>分析用户点击 → 加购 → 支付行为序列，计算访问间隔、转化率，挖掘漏斗优化点。</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">💰</div>
+            <h3>促销效果对比分析</h3>
+            <p>对比活动周与非活动周的销售额、客单价、转化率差异，量化评估营销效果。</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">💬</div>
+            <h3>情感分析与文本挖掘</h3>
+            <p>基于评分与评论文本进行情感倾向分析，计算满意度，提取高频关键词与问题。</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">🎖️</div>
+            <h3>LTV 用户生命周期价值</h3>
+            <p>计算 30 天 LTV、累计贡献，按注册月份进行 cohort 分析，评估用户长期商业价值。</p>
+          </div>
+          <div class="feature-card">
+            <div class="icon">⚡</div>
+            <h3>实时特征滚动窗口</h3>
+            <p>使用时间滚动窗口统计实时特征，模拟推荐/风控场景的实时数据流处理逻辑。</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section" style="background:rgba(17,26,46,0.5);">
+    <!-- 10 大项目 -->
+    <section class="section" id="projects" style="background: rgba(17, 26, 46, 0.4);">
       <div class="container">
-        <h2>10 大项目说明</h2>
-        <p class="sub">全面覆盖数据分析核心技能与常见业务场景</p>
+        <h2>10 大实战项目</h2>
+        <p class="sub">点击进入任一项目，学习知识、运行代码、完成挑战</p>
         <div class="card-grid">
           <div v-for="p in projects" :key="p.id" class="card">
             <span v-if="p.completed" class="badge">✓ 已完成</span>
-            <div class="row" style="margin-bottom:10px;">
+            <div class="card-num">{{ p.num }}</div>
+            <div class="row" style="margin-bottom: 12px;">
               <span class="tag" :class="'tag-' + p.level">{{ p.level }}</span>
             </div>
             <h3 class="card-title">{{ p.title }}</h3>
             <p class="card-desc">{{ p.description }}</p>
+            <div class="skill-chips">
+              <span v-for="s in p.skills" :key="s" class="skill-chip">{{ s }}</span>
+            </div>
             <button class="btn" @click="go(p.file)">进入项目 →</button>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section">
+    <!-- 学习路径 -->
+    <section class="section" id="path">
       <div class="container">
         <h2>学习路径：从入门到专家</h2>
-        <p class="sub">每一步一步，稳步掌握数据分析全栈能力</p>
+        <p class="sub">每一步稳扎稳打，逐步构建完整的数据分析能力体系</p>
         <div class="path-row">
           <div class="path-cell">
-            <h4 style="color:#6ee7b7;">入门</h4>
+            <div class="level-num">01</div>
+            <h4 style="color:#6ee7b7;">入门 Lv.1</h4>
             <p>购物车放弃分析</p>
-            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">熟悉 DataFrame 基础操作</p>
+            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">DataFrame 基础 · 分组统计</p>
           </div>
           <div class="path-cell">
-            <h4 style="color:#93c5fd;">基础</h4>
+            <div class="level-num">02</div>
+            <h4 style="color:#93c5fd;">基础 Lv.2</h4>
             <p>RFM 分层 · 价格异常</p>
-            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">分组 / 聚合 / IQR</p>
+            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">分位数 · IQR · Z-score</p>
           </div>
           <div class="path-cell">
-            <h4 style="color:#c4b5fd;">进阶</h4>
+            <div class="level-num">03</div>
+            <h4 style="color:#c4b5fd;">进阶 Lv.3</h4>
             <p>聚类 · 关联 · 行为序列</p>
             <p style="color:#6e7b99;font-size:12px;margin-top:6px;">机器学习 + pandas</p>
           </div>
           <div class="path-cell">
-            <h4 style="color:#fcd34d;">高阶</h4>
-            <p>情感分析 · 促销对比</p>
-            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">文本 + 统计对比分析</p>
+            <div class="level-num">04</div>
+            <h4 style="color:#fcd34d;">高阶 Lv.4</h4>
+            <p>促销对比 · 情感分析</p>
+            <p style="color:#6e7b99;font-size:12px;margin-top:6px;">文本处理 · 统计对比</p>
           </div>
           <div class="path-cell">
-            <h4 style="color:#fca5a5;">专家</h4>
+            <div class="level-num">05</div>
+            <h4 style="color:#fca5a5;">专家 Lv.5</h4>
             <p>LTV · 实时特征</p>
             <p style="color:#6e7b99;font-size:12px;margin-top:6px;">复杂指标体系</p>
           </div>
@@ -103,33 +184,71 @@
       </div>
     </section>
 
+    <!-- Footer -->
     <footer class="footer">
-      <p>Pandas 数据分析实战训练营 · 纯前端实现</p>
-      <p style="margin-top:6px;">
-      本地预览：在项目根目录执行 <code style="background:#18223f;padding:2px 6px;border-radius:4px;">python -m http.server</code>
-      &nbsp;|&nbsp; 部署：可直接上传到 Cloudflare Pages
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h5>🐼 Pandas 训练营</h5>
+          <p>纯前端实现，零配置环境</p>
+          <p>浏览器内直接运行 Python</p>
+        </div>
+        <div class="footer-col">
+          <h5>技术栈</h5>
+          <p>Vue 3 · Tailwind CSS</p>
+          <p>CodeMirror 6 · Pyodide</p>
+        </div>
+        <div class="footer-col">
+          <h5>本地运行</h5>
+          <p>python -m http.server</p>
+          <p>然后访问 localhost:8000</p>
+        </div>
+        <div class="footer-col">
+          <h5>部署方式</h5>
+          <p>可直接上传到 Cloudflare Pages</p>
+          <p>或 GitHub Pages / Vercel</p>
+        </div>
+      </div>
+      <p style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+        © Pandas 数据分析实战训练营 · 基于真实电商业务场景构建
       </p>
-      <p style="margin-top:10px;color:#6e7b99;">Powered by Vue3 · TailwindCSS · CodeMirror · Pyodide</p>
     </footer>
   </div>
 
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
-  <script src="common/storage.js"></script>
   <script>
     const { createApp, onMounted, ref, computed } = Vue;
     createApp({
       setup() {
         const projects = ref([
-          { id: '01_cart_abandon', file: 'projects/01_cart_abandon.html', title: '购物车放弃分析', level: '入门', description: '分析用户加购未付款行为，计算放弃率、时段趋势、核心原因指标。', completed: false },
-          { id: '02_rfm_analysis', file: 'projects/02_rfm_analysis.html', title: 'RFM 用户分层', level: '基础', description: '基于消费金额、频率、最近购买时间做用户价值分层（重要价值/流失预警等）。', completed: false },
-          { id: '03_price_anomaly', file: 'projects/03_price_anomaly.html', title: '价格异常检测', level: '基础', description: '使用 IQR、标准差检测商品价格异常，适合风控、定价场景。', completed: false },
-          { id: '04_kmeans_cluster', file: 'projects/04_kmeans_cluster.html', title: 'KMeans 用户聚类', level: '进阶', description: '无监督学习自动分群，提取用户特征，实现精准运营。', completed: false },
-          { id: '05_basket_analysis', file: 'projects/05_basket_analysis.html', title: '购物篮关联分析', level: '进阶', description: 'Apriori 思想计算商品关联支持度，挖掘"买 A 必买 B"的搭配规律。', completed: false },
-          { id: '06_behavior_sequence', file: 'projects/06_behavior_sequence.html', title: '用户行为序列特征', level: '进阶', description: '分析用户点击/加购/支付行为序列，计算访问间隔、转化路径。', completed: false },
-          { id: '07_promo_compare', file: 'projects/07_promo_compare.html', title: '促销活动效果对比', level: '高阶', description: '对比活动周 vs 非活动周的销售额、客单价、转化率差异。', completed: false },
-          { id: '08_sentiment_analysis', file: 'projects/08_sentiment_analysis.html', title: '评论情感分析', level: '高阶', description: '基于评论评分与文本做情感倾向分析，挖掘用户满意度。', completed: false },
-          { id: '09_ltv_calculation', file: 'projects/09_ltv_calculation.html', title: '用户 LTV 生命周期价值', level: '专家', description: '计算 30 天 LTV、累计贡献，评估用户长期商业价值。', completed: false },
-          { id: '10_realtime_feature', file: 'projects/10_realtime_feature.html', title: '实时特征滚动窗口', level: '专家', description: '时间窗口滚动统计，模拟实时推荐/风控特征工程。', completed: false }
+          { num: '01', id: '01_cart_abandon', file: 'projects/01_cart_abandon.html', title: '购物车放弃分析', level: '入门',
+            description: '分析用户加购未付款行为，计算放弃率、时段趋势、商品放弃排名，理解电商转化漏斗。',
+            skills: ['DataFrame', '分组统计', '时间分析'] },
+          { num: '02', id: '02_rfm_analysis', file: 'projects/02_rfm_analysis.html', title: 'RFM 用户分层', level: '基础',
+            description: '基于消费 Recency/Frequency/Monetary 做用户价值分层，识别重要价值与流失预警用户。',
+            skills: ['RFM', '分位数', '用户画像'] },
+          { num: '03', id: '03_user_churn', file: 'projects/03_user_churn.html', title: '用户流失预测建模', level: '中等',
+            description: '提取用户行为特征（活跃度、消费频次、最后活跃），训练 sklearn 模型预测流失风险。',
+            skills: ['LogisticRegression', '特征工程', '分类评估'] },
+          { num: '04', id: '04_cohort_retention', file: 'projects/04_cohort_retention.html', title: '用户留存与 Cohort 分析', level: '中等',
+            description: '按首月分群，追踪同批用户在后续月份的留存曲线与 M0-M2 月活跃矩阵。',
+            skills: ['Cohort', 'pivot_table', '留存率'] },
+          { num: '05', id: '05_marketing_roi', file: 'projects/05_marketing_roi.html', title: '营销活动 ROI 评估', level: '中等',
+            description: '结合投入成本与实际收益，计算各渠道/活动的投资回报率，识别高 ROI 与低效渠道。',
+            skills: ['ROI', 'CPA', '渠道对比'] },
+          { num: '06', id: '06_product_recommend', file: 'projects/06_product_recommend.html', title: '商品关联推荐', level: '高级',
+            description: 'Apriori-like 高频共现分析，挖掘订单中商品搭配规律，生成 Top N 推荐组合。',
+            skills: ['关联规则', '支持度', '置信度'] },
+          { num: '07', id: '07_customer_ltv', file: 'projects/07_customer_ltv.html', title: '客户终身价值 LTV', level: '高级',
+            description: '基于历史消费数据预测用户终身价值（LTV），帮助资源倾斜到高价值用户。',
+            skills: ['生命周期', 'LTV', '价值分群'] },
+          { num: '08', id: '08_inventory_optimize', file: 'projects/08_inventory_optimize.html', title: '库存优化与 ABC 分析', level: '高级',
+            description: '帕累托法则将 SKU 按价值贡献分类，同时计算库存天数与缺货风险，辅助补货决策。',
+            skills: ['ABC 分析', '库存周转', '补货建议'] },
+          { num: '09', id: '09_sales_forecast', file: 'projects/09_sales_forecast.html', title: '销售预测与季节性分析', level: '高级',
+            description: '基于历史销售时间序列，检测季节性/趋势性，使用移动平均与线性回归预测未来。',
+            skills: ['滚动窗口', 'LinearRegression', '季节因子'] },
+          { num: '10', id: '10_realtime_feature', file: 'projects/10_realtime_feature.html', title: '实时用户画像特征构建', level: '实战',
+            description: '模拟近 7 天行为日志，滑动窗口计算实时特征（近 1h/6h/24h/7d 的点击/消费等）。',
+            skills: ['时间窗口', '实时特征', '特征矩阵'] }
         ]);
 
         const progress = ref(0);
@@ -144,7 +263,7 @@
 
         return {
           projects, progress,
-          go: function(f) { window.location.href = '../' + f; }
+          go: function(f) { window.location.href = f; }
         };
       }
     }).mount('#app');

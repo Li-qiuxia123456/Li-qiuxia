@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>实时用户画像特征构建 · Pandas 数据分析实战训练营</title>
+  <title>销售预测与季节性分析 · Pandas 数据分析实战训练营</title>
   <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../common/style.css" />
@@ -31,11 +31,11 @@
 
     <header class="project-header">
       <div class="meta-row">
-        <span class="project-num">项目 10 / 10</span>
-        <span class="tag tag-实战">实战</span>
+        <span class="project-num">项目 09 / 10</span>
+        <span class="tag tag-高级">高级</span>
       </div>
-      <h1>实时用户画像特征构建</h1>
-      <p class="description">模拟近 7 天用户行为日志，滑动窗口计算实时特征（近 1h/6h/24h 点击数、近 7 天消费总额等），构建实时画像输入。</p>
+      <h1>销售预测与季节性分析</h1>
+      <p class="description">基于历史销售时间序列，检测季节性、趋势性，并使用移动平均与简单回归预测未来销售额。</p>
     </header>
 
     <main class="project-main">
@@ -52,64 +52,71 @@
           <h3><span class="panel-icon">📖</span>核心知识点</h3>
           <div class="knowledge-grid">
             <div class="knowledge-card">
-              <div class="kp-title">🪟 滑动窗口</div>
-              <div class="kp-desc">以时间为索引，先取 cutoff 时间点，再过滤 [cutoff - window, cutoff] 范围内记录。</div>
+              <div class="kp-title">时间序列格式</div>
+              <div class="kp-desc"><span class="inline-code">PeriodIndex</span> / <span class="inline-code">DatetimeIndex</span>，结合 <span class="inline-code">rolling</span> 窗口分析。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">👤 按用户聚合特征</div>
-              <div class="kp-desc">近 1h/6h/24h 的 click_count、view_count、purchase_count、total_purchase_amount。</div>
+              <div class="kp-title">📈 移动平均 SMA</div>
+              <div class="kp-desc"><span class="inline-code">df.rolling(window=3).mean()</span> 平滑噪声，识别趋势。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">⏱️ pd.Timedelta</div>
-              <div class="kp-desc">时间窗口计算：<span class="inline-code">'1h'</span>、<span class="inline-code">'6h'</span>、<span class="inline-code">'24h'</span>、<span class="inline-code">'7 days'</span>。</div>
+              <div class="kp-title">📊 同比 YoY</div>
+              <div class="kp-desc">(本月 - 去年同月) / 去年同月，衡量增长幅度。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">🔧 pivot 多特征输出</div>
-              <div class="kp-desc">用 <span class="inline-code">groupby + agg</span> 或多条件聚合生成宽表特征。</div>
+              <div class="kp-title">🔄 环比 MoM</div>
+              <div class="kp-desc">(本月 - 上月) / 上月，衡量短期波动。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">🎯 实时画像落地</div>
-              <div class="kp-desc">对每个用户生成一个特征向量，便于下游推荐/风控模型使用。</div>
+              <div class="kp-title">📉 线性回归趋势</div>
+              <div class="kp-desc">sklearn <span class="inline-code">LinearRegression</span>，以时间索引作为 X，预测销售额。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">❌ 特征缺失值填充</div>
-              <div class="kp-desc">用户无某窗口记录 → 填充 0。</div>
+              <div class="kp-title">🎄 季节性识别</div>
+              <div class="kp-desc">按月均值分析（11/12 月明显高，夏季也高），输出季节因子。</div>
             </div>
           </div>
         </div>
 
         <div class="panel">
           <h3><span class="panel-icon">💻</span>核心函数速查</h3>
-          <pre class="code-block"><span class="code-comment"># 转 datetime 并设为索引</span>
-df['timestamp'] = pd.to_datetime(df['timestamp'])
-df = df.set_index('timestamp').sort_index()
+          <pre class="code-block"><span class="code-comment"># 日期解析</span>
+df['date'] = pd.to_datetime(df['date'])
+df = df.set_index('date').sort_index()
 
-<span class="code-comment"># 取当前时间（最后一条记录时间）</span>
-now = df.index.max()
+<span class="code-comment"># 移动平均</span>
+df['ma3'] = df['sales'].rolling(3).mean()
+df['ma6'] = df['sales'].rolling(6).mean()
+df['ma12'] = df['sales'].rolling(12).mean()
 
-<span class="code-comment"># 滑动窗口过滤</span>
-def build_features(df, now, window_str):
-    start = now - pd.Timedelta(window_str)
-    sub = df[(df.index >= start) & (df.index <= now)]
-    feats = sub.groupby('user_id').agg(...)
-    return feats
+<span class="code-comment"># 同比/环比</span>
+df['yoy'] = df['sales'].pct_change(12) * 100
+df['mom'] = df['sales'].pct_change(1) * 100
 
-<span class="code-comment"># 多窗口合并，缺失值填 0</span>
-features = pd.concat([f1, f6, f24, f7d], axis=1).fillna(0)
-features.columns = ['click_1h', 'view_1h', ...]</pre>
+<span class="code-comment"># 线性回归</span>
+from sklearn.linear_model import LinearRegression
+df['month_idx'] = range(len(df))
+X = df[['month_idx']]
+y = df['sales']
+model = LinearRegression().fit(X, y)
+df['trend'] = model.predict(X)
+
+<span class="code-comment"># 季节因子（同月均值 / 总均值）</span>
+seasonal = df.groupby(df.index.month)['sales'].mean()
+season_factor = seasonal / seasonal.mean()</pre>
         </div>
 
         <div class="panel">
           <h3><span class="panel-icon">🎯</span>分析目标</h3>
           <div class="lesson-section">
-            <p>本项目将围绕实时用户画像，按以下步骤展开：</p>
+            <p>本项目将围绕销售预测，按以下步骤展开：</p>
             <ul>
-              <li><strong>日期转 datetime</strong>：解析时间戳并排序</li>
-              <li><strong>定义 now</strong>：以最后一条记录时间为当前时间</li>
-              <li><strong>build_features 函数</strong>：近 1h/6h/24h/7d 窗口特征</li>
-              <li><strong>对每个用户产出特征向量</strong>：宽表结构</li>
-              <li><strong>合并成完整特征矩阵</strong>：用户 × 特征宽表</li>
-              <li><strong>Top 高活跃用户展示</strong>：识别最活跃用户</li>
+              <li><strong>日期处理</strong>：解析日期字段并排序</li>
+              <li><strong>3/6/12 月 MA</strong>：平滑噪声识别趋势</li>
+              <li><strong>同比/环比</strong>：YoY/MoM 分析增长</li>
+              <li><strong>季节因子</strong>：计算每个月的季节系数</li>
+              <li><strong>LinearRegression 预测</strong>：基于时间索引预测</li>
+              <li><strong>2024 年预测表</strong>：输出下一年 12 个月预测值</li>
             </ul>
           </div>
         </div>
@@ -119,15 +126,13 @@ features.columns = ['click_1h', 'view_1h', ...]</pre>
         <div class="panel">
           <h3><span class="panel-icon">📋</span>数据集字段说明</h3>
           <div class="field-list">
-            <div class="field-item"><span class="f-name">timestamp</span><span class="f-desc">行为时间（YYYY-MM-DD HH:MM）</span></div>
-            <div class="field-item"><span class="f-name">user_id</span><span class="f-desc">用户 ID</span></div>
-            <div class="field-item"><span class="f-name">action</span><span class="f-desc">行为类型：click / view / purchase</span></div>
-            <div class="field-item"><span class="f-name">amount</span><span class="f-desc">消费金额（非 purchase 为 0）</span></div>
+            <div class="field-item"><span class="f-name">date</span><span class="f-desc">年月（YYYY-MM）</span></div>
+            <div class="field-item"><span class="f-name">sales</span><span class="f-desc">月销售额（单位：万）</span></div>
           </div>
         </div>
 
         <div class="panel">
-          <h3><span class="panel-icon">🔍</span>数据预览（50 行样例）</h3>
+          <h3><span class="panel-icon">🔍</span>数据预览（36 行按月，2021-2023）</h3>
           <div class="data-scroll">
             <table class="data-table" id="data-table"></table>
           </div>
@@ -158,156 +163,142 @@ features.columns = ['click_1h', 'view_1h', ...]</pre>
   </div>
 
   <script type="text/csv" id="csv-data">
-timestamp,user_id,action,amount
-2024-03-01 00:05,U301,view,0
-2024-03-01 00:20,U302,click,0
-2024-03-01 01:10,U301,view,0
-2024-03-01 02:30,U303,purchase,199
-2024-03-01 03:15,U302,view,0
-2024-03-01 04:00,U301,click,0
-2024-03-01 05:45,U304,purchase,399
-2024-03-01 06:20,U302,purchase,99
-2024-03-01 07:00,U301,click,0
-2024-03-01 08:15,U303,view,0
-2024-03-01 09:30,U301,purchase,599
-2024-03-01 10:00,U304,click,0
-2024-03-01 11:20,U302,view,0
-2024-03-01 12:10,U305,purchase,259
-2024-03-01 13:45,U301,click,0
-2024-03-02 08:00,U302,view,0
-2024-03-02 09:15,U301,purchase,399
-2024-03-02 10:30,U303,click,0
-2024-03-02 11:45,U304,view,0
-2024-03-02 12:30,U301,click,0
-2024-03-02 14:00,U302,purchase,199
-2024-03-02 15:20,U305,click,0
-2024-03-02 16:40,U303,view,0
-2024-03-02 18:00,U301,view,0
-2024-03-02 19:15,U304,purchase,499
-2024-03-03 08:30,U302,click,0
-2024-03-03 09:45,U301,purchase,299
-2024-03-03 10:30,U303,click,0
-2024-03-03 11:20,U305,view,0
-2024-03-03 13:00,U304,view,0
-2024-03-03 14:30,U301,click,0
-2024-03-03 15:45,U302,purchase,159
-2024-03-04 09:00,U303,purchase,399
-2024-03-04 10:20,U301,view,0
-2024-03-04 11:35,U304,click,0
-2024-03-04 13:00,U302,view,0
-2024-03-04 14:30,U305,purchase,329
-2024-03-04 16:00,U301,click,0
-2024-03-04 17:20,U303,click,0
-2024-03-05 08:00,U304,view,0
-2024-03-05 09:30,U301,purchase,459
-2024-03-05 10:45,U302,click,0
-2024-03-05 12:00,U303,view,0
-2024-03-05 13:30,U305,click,0
-2024-03-05 15:00,U301,view,0
-2024-03-05 16:15,U304,purchase,299
-2024-03-06 08:00,U302,click,0
-2024-03-06 09:30,U301,purchase,399
-2024-03-07 10:00,U303,view,0
-2024-03-07 14:00,U301,click,0
-2024-03-07 18:30,U302,purchase,259
-2024-03-07 23:50,U305,purchase,199
+date,sales
+2021-01,120
+2021-02,135
+2021-03,165
+2021-04,180
+2021-05,220
+2021-06,280
+2021-07,310
+2021-08,290
+2021-09,250
+2021-10,230
+2021-11,380
+2021-12,450
+2022-01,150
+2022-02,170
+2022-03,200
+2022-04,220
+2022-05,260
+2022-06,330
+2022-07,370
+2022-08,350
+2022-09,300
+2022-10,280
+2022-11,460
+2022-12,540
+2023-01,180
+2023-02,210
+2023-03,240
+2023-04,260
+2023-05,310
+2023-06,390
+2023-07,430
+2023-08,410
+2023-09,360
+2023-10,330
+2023-11,550
+2023-12,650
   </script>
 
   <script type="text/plain" id="default-code">import pandas as pd
 import io
 
-print("=== 基础探索 ===")
-print(f"总记录数: {len(df)}")
-print(f"用户数: {df['user_id'].nunique()}")
-print(f"行为类型分布:")
-print(df['action'].value_counts())
-show(df.head())
+print("=== 基础统计 ===")
+show(df.describe())
 
-print("\n=== 简单按天聚合 ===")
-df['timestamp'] = pd.to_datetime(df['timestamp'])
-df['day'] = df['timestamp'].dt.date
-by_day = df.groupby('day').agg(
-    记录数=('user_id', 'count'),
-    用户数=('user_id', 'nunique'),
-    消费总额=('amount', 'sum')
-).reset_index()
-show(by_day)
+print("\n=== 前 N 行展示 ===")
+show(df.head(12))
 
 print("\n=== 下一步建议 ===")
-print("1. 以最后一条记录时间为 now")
-print("2. 定义 build_features 函数（1h/6h/24h/7d）")
-print("3. 对每个用户产出特征向量")
-print("4. 合并成完整特征矩阵")
-print("5. 输出 Top 高活跃用户")
+print("1. 日期解析并排序")
+print("2. MA3 / MA6 / MA12 平滑")
+print("3. 同比 YoY (vs 去年同月) + 环比 MoM (vs 上月)")
+print("4. 按月均值分析季节因子")
+print("5. LinearRegression 预测趋势")
+print("6. 2024 年 12 个月预测表")
 </script>
 
   <script type="text/plain" id="answer-code">import pandas as pd
 import io
+import numpy as np
 
-# ========= 1. 日期转 datetime =========
-df['timestamp'] = pd.to_datetime(df['timestamp'])
-df = df.set_index('timestamp').sort_index()
+# ========= 1. 日期处理 =========
+df['date'] = pd.to_datetime(df['date'])
+df = df.sort_values('date').reset_index(drop=True)
+df['month_idx'] = np.arange(len(df))  # 0,1,2,...
+df['year'] = df['date'].dt.year
+df['month'] = df['date'].dt.month
 
-print("=== 数据概览 ===")
-print(f"总记录数: {len(df)}")
-print(f"用户数: {df['user_id'].nunique()}")
-print(f"时间范围: {df.index.min()} ~ {df.index.max()}")
-show(df.reset_index().head())
+print("=== 原始时间序列（部分）===")
+show(df[['date', 'sales']].head(12))
 
-# ========= 2. 定义 now =========
-now = df.index.max()
-print(f"\n=== 当前时间 (now): {now} ===")
+# ========= 2. 3/6/12 月 MA =========
+df['ma3'] = df['sales'].rolling(3).mean().round(1)
+df['ma6'] = df['sales'].rolling(6).mean().round(1)
+df['ma12'] = df['sales'].rolling(12).mean().round(1)
 
-all_users = df['user_id'].unique()
+print("\n=== 移动平均（MA3/MA6/MA12）===")
+show(df[['date', 'sales', 'ma3', 'ma6', 'ma12']])
 
-# ========= 3. build_features 函数 =========
-def build_features(df, now, window_str, prefix):
-    start = now - pd.Timedelta(window_str)
-    sub = df[(df.index >= start) & (df.index <= now)]
-    feats = sub.groupby('user_id').agg(
-        **{
-            f'{prefix}_click_count': ('action', lambda x: (x == 'click').sum()),
-            f'{prefix}_view_count': ('action', lambda x: (x == 'view').sum()),
-            f'{prefix}_purchase_count': ('action', lambda x: (x == 'purchase').sum()),
-            f'{prefix}_total_amount': ('amount', 'sum')
-        }
-    )
-    return feats
+# ========= 3. 同比 / 环比 =========
+df['yoy(%)'] = (df['sales'].pct_change(12) * 100).round(1)
+df['mom(%)'] = (df['sales'].pct_change(1) * 100).round(1)
 
-# ========= 4. 各窗口计算 =========
-print("\n=== 近 1 小时特征 ===")
-f1 = build_features(df, now, '1h', 'f1h')
-show(f1.fillna(0).astype(int))
+print("\n=== 同比/环比（2023 年为例）===")
+show(df[df['year'] == 2023][['date', 'sales', 'yoy(%)', 'mom(%)']])
 
-print("\n=== 近 6 小时特征 ===")
-f6 = build_features(df, now, '6h', 'f6h')
-show(f6.fillna(0).astype(int))
+# ========= 4. 季节因子 =========
+print("\n=== 季节因子（同月均值 / 总均值）===")
+monthly_mean = df.groupby('month')['sales'].mean()
+overall_mean = df['sales'].mean()
+season_factor = (monthly_mean / overall_mean).round(3)
+season_df = pd.DataFrame({
+    '月份': season_factor.index,
+    '同月均值': monthly_mean.round(1).values,
+    '季节因子': season_factor.values
+})
+show(season_df)
 
-print("\n=== 近 24 小时特征 ===")
-f24 = build_features(df, now, '24h', 'f24h')
-show(f24.fillna(0).astype(int))
+# ========= 5. LinearRegression 预测 =========
+from sklearn.linear_model import LinearRegression
+X = df[['month_idx']].values
+y = df['sales'].values
+model = LinearRegression()
+model.fit(X, y)
+df['trend'] = model.predict(X).round(1)
 
-print("\n=== 近 7 天特征 ===")
-f7d = build_features(df, now, '7 days', 'f7d')
-show(f7d.fillna(0).astype(int))
+print(f"\n=== 线性回归趋势 ===")
+print(f"斜率（每月增长）: {round(model.coef_[0], 2)}")
+print(f"截距: {round(model.intercept_, 2)}")
+print(f"R² (score): {round(model.score(X, y), 4)}")
 
-# ========= 5. 合并成完整特征矩阵 =========
-print("\n=== 完整特征矩阵（宽表）===")
-features = pd.concat([f1, f6, f24, f7d], axis=1).fillna(0).astype(int)
-features = features.reindex(all_users).fillna(0).astype(int)
-features.index.name = 'user_id'
-features = features.reset_index()
-show(features)
+# ========= 6. 2024 年预测表 =========
+print("\n=== 2024 年销售预测 ===")
+future_month_idx = np.arange(len(df), len(df) + 12).reshape(-1, 1)
+future_months = [f"2024-{m:02d}" for m in range(1, 13)]
 
-# ========= 6. Top 高活跃用户展示 =========
-print("\n=== Top 高活跃用户（近 7 天消费额降序）===")
-top_users = features.sort_values('f7d_total_amount', ascending=False).head(10)
-show(top_users[['user_id', 'f7d_purchase_count', 'f7d_total_amount', 'f7d_click_count', 'f7d_view_count']])
+trend_pred = model.predict(future_month_idx)
+forecast_list = []
+for i, (m, t_pred) in enumerate(zip(range(1, 13), trend_pred)):
+    sf = season_factor[m]
+    forecast = t_pred * sf
+    forecast_list.append({
+        '月份': future_months[i],
+        '趋势预测': round(t_pred, 1),
+        '季节因子': sf,
+        '最终预测': round(forecast, 1)
+    })
+
+forecast_df = pd.DataFrame(forecast_list)
+show(forecast_df)
 
 print("\n=== 业务洞察 ===")
-print(f"- 用户 U301 近 7 天消费最高，属于高价值活跃用户，可推送 VIP 权益")
-print(f"- 部分用户仅 view/click 但未 purchase，属于潜在转化用户，可推送限时优惠券")
-print(f"- 实时特征矩阵可直接灌入推荐/风控模型，用于毫秒级个性化决策")
+print(f"- 整体呈增长趋势，月均增长约 {round(model.coef_[0], 1)}")
+print(f"- 11/12 月季节因子最高（双 11、双 12、年货节），应提前备货")
+print(f"- 2/3 月季节因子最低，属于淡季，适合促销引流")
+print(f"- 2024 年总预计销售额 ≈ {forecast_df['最终预测'].sum().round(0)}")
 </script>
 
   <script src="../common/storage.js"></script>
@@ -315,8 +306,8 @@ print(f"- 实时特征矩阵可直接灌入推荐/风控模型，用于毫秒级
   <script src="../common/code_runner.js"></script>
 
   <script>
-    const PROJECT_ID = '10_realtime_feature';
-    const PROJECT_TITLE = '实时用户画像特征构建';
+    const PROJECT_ID = '09_sales_forecast';
+    const PROJECT_TITLE = '销售预测与季节性分析';
 
     (function() {
       const csvEl = document.getElementById('csv-data');

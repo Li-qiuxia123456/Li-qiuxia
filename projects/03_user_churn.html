@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>用户流失预测建模 · Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.4.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.26.3",
+      "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.0.1",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.2"
+    }
+  }
+  </script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="nav-progress">{{ completed ? '✓ 已完成' : '○ 未完成' }}</span>
+      </div>
+    </nav>
+
+    <!-- 项目头部 -->
+    <header class="project-header">
+      <div class="meta-row">
+        <span class="project-num">项目 03 / 10</span>
+        <span class="tag tag-中等">中等</span>
+      </div>
+      <h1>用户流失预测建模</h1>
+      <p class="description">用 Pandas 提取用户行为特征（活跃度、消费频次、最近活动时间等），配合分类标签训练 sklearn 模型，预测高流失风险用户。</p>
+    </header>
+
+    <main class="project-main">
+      <!-- 完成庆祝栏 -->
+      <div v-if="completed" class="celebrate">
+        🎉 恭喜！你已完成本项目。继续挑战下一个吧 →
+      </div>
+
+      <!-- Tabs 切换 -->
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="knowledge" @click="switchTab('knowledge')">📚 知识讲解</button>
+        <button class="tab-btn" data-tab="data" @click="switchTab('data')">📋 数据预览</button>
+        <button class="tab-btn" data-tab="code" @click="switchTab('code')">💻 代码实战</button>
+      </div>
+
+      <!-- Tab 1: 知识讲解 -->
+      <section class="tab-content active" id="tab-knowledge">
+        <div class="panel">
+          <h3><span class="panel-icon">📖</span>核心知识点</h3>
+          <div class="knowledge-grid">
+            <div class="knowledge-card">
+              <div class="kp-title">🧩 特征工程基础</div>
+              <div class="kp-desc">从原始行为数据中提取有意义的数值字段。活跃天数、订单数、金额、会话时长等，这些是模型判断用户是否流失的"线索"。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">✂️ 训练集/测试集切分</div>
+              <div class="kp-desc"><span class="inline-code">sklearn.model_selection.train_test_split</span> 划分训练/测试集，常用参数 <span class="inline-code">test_size</span>、<span class="inline-code">random_state</span>（保证复现）。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">🌲 分类算法</div>
+              <div class="kp-desc">逻辑回归、随机森林、XGBoost 等。建议从简单模型（LogisticRegression）起步，逐步尝试更复杂的 ensemble 模型比较效果。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">📊 分类评估指标</div>
+              <div class="kp-desc">accuracy、precision、recall、F1、ROC-AUC。imbalanced 数据尤其要关注 recall / precision，单一 accuracy 会误导。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">⭐ 特征重要性</div>
+              <div class="kp-desc">tree 类模型可以打印 <span class="inline-code">feature_importances_</span>，理解模型判断用户流失的依据，也便于向业务方解释。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">🔢 Pandas 数值统计与描述</div>
+              <div class="kp-desc"><span class="inline-code">df.describe()</span>、<span class="inline-code">df.corr()</span> 相关矩阵快速发现高相关字段，也可检查是否存在多重共线性。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">💻</span>核心函数速查</h3>
+          <pre class="code-block"><span class="code-comment"># 数据概览</span>
+df.head()
+df.describe()
+df.corr()                <span class="code-comment"># 相关矩阵</span>
+df['is_churned'].value_counts()
+
+<span class="code-comment"># 特征选择</span>
+feature_cols = ['days_active', 'total_orders', 'total_amount',
+                'avg_session_min', 'last_active_days_ago']
+X = df[feature_cols]
+y = df['is_churned']
+
+<span class="code-comment"># 切分与训练</span>
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42)
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+
+lr = LogisticRegression(max_iter=1000).fit(X_train, y_train)
+rf = RandomForestClassifier(n_estimators=100, random_state=42).fit(X_train, y_train)
+
+<span class="code-comment"># 评估</span>
+from sklearn.metrics import (accuracy_score, confusion_matrix,
+                             classification_report)
+y_pred = rf.predict(X_test)
+print(accuracy_score(y_test, y_pred))
+print(confusion_matrix(y_test, y_pred))
+
+<span class="code-comment"># 特征重要性</span>
+pd.DataFrame({'feature': feature_cols,
+              'importance': rf.feature_importances_}
+            ).sort_values('importance', ascending=False)</pre>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">🎯</span>分析目标</h3>
+          <div class="lesson-section">
+            <p>本项目将围绕用户流失预测，按以下步骤展开分析：</p>
+            <ul>
+              <li><strong>数据探索</strong>：查看流失用户占比、各特征分布与相关矩阵</li>
+              <li><strong>特征准备</strong>：选择数值特征列，构造 X / y</li>
+              <li><strong>训练集切分</strong>：按 7:3 切分训练/测试集</li>
+              <li><strong>多模型训练</strong>：对比 LogisticRegression 与 RandomForest</li>
+              <li><strong>评估表现</strong>：accuracy、混淆矩阵、classification report</li>
+              <li><strong>特征重要性</strong>：识别影响流失的关键因素</li>
+              <li><strong>高风险用户列表</strong>：预测当前高流失风险用户供运营干预</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 2: 数据预览 -->
+      <section class="tab-content" id="tab-data">
+        <div class="panel">
+          <h3><span class="panel-icon">📋</span>数据集字段说明</h3>
+          <div class="field-list">
+            <div class="field-item"><span class="f-name">user_id</span><span class="f-desc">用户唯一标识</span></div>
+            <div class="field-item"><span class="f-name">days_active</span><span class="f-desc">活跃天数</span></div>
+            <div class="field-item"><span class="f-name">total_orders</span><span class="f-desc">累计订单数</span></div>
+            <div class="field-item"><span class="f-name">total_amount</span><span class="f-desc">累计消费金额</span></div>
+            <div class="field-item"><span class="f-name">avg_session_min</span><span class="f-desc">平均会话时长（分钟）</span></div>
+            <div class="field-item"><span class="f-name">last_active_days_ago</span><span class="f-desc">距上次活跃天数</span></div>
+            <div class="field-item"><span class="f-name">is_churned</span><span class="f-desc">1=已流失, 0=未流失（标签列）</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">🔍</span>数据预览（35 行样例）</h3>
+          <div class="data-scroll">
+            <table class="data-table" id="data-table"></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 3: 代码实战 -->
+      <section class="tab-content" id="tab-code">
+        <div class="panel">
+          <h3><span class="panel-icon">💻</span>代码实战</h3>
+          <div class="info-box"><code style="background:transparent;padding:0;">df</code> 变量已自动加载，可直接使用。运行代码后，<code style="background:transparent;padding:0;">print</code> 输出将显示在下方控制台，<code style="background:transparent;padding:0;">show(df)</code> 可以将 DataFrame 渲染为表格。</div>
+
+          <div id="editor-container" class="cm-container"></div>
+
+          <div class="btn-row">
+            <button class="btn" @click="runCode">▶ 运行代码</button>
+            <button class="btn btn-secondary" @click="resetCode">重置代码</button>
+            <button class="btn btn-secondary" @click="showAnswer">查看参考答案</button>
+          </div>
+
+          <div id="output" class="output-console" style="margin-top:18px;">点击"运行代码"查看结果...</div>
+        </div>
+
+        <div class="panel" style="text-align:center;">
+          <button class="btn btn-success" style="font-size:16px; padding:14px 30px;" @click="markDone">🎖️ 标记项目完成</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- CSV 数据 -->
+  <script type="text/csv" id="csv-data">
+user_id,days_active,total_orders,total_amount,avg_session_min,last_active_days_ago,is_churned
+U001,12,5,1299,8.5,3,0
+U002,8,2,399,5.2,12,1
+U003,20,12,5999,12.3,1,0
+U004,5,1,99,3.8,25,1
+U005,15,8,3299,10.1,5,0
+U006,3,1,59,2.1,30,1
+U007,18,10,4599,11.5,2,0
+U008,7,3,899,6.3,15,1
+U009,22,15,7999,13.2,1,0
+U010,4,1,129,4.5,22,1
+U011,14,7,2899,9.8,6,0
+U012,6,2,459,5.5,18,1
+U013,25,18,9999,14.1,1,0
+U014,9,4,1599,7.2,10,0
+U015,4,1,79,3.2,28,1
+U016,16,9,3899,10.5,4,0
+U017,7,2,599,5.8,16,1
+U018,20,13,6599,12.8,2,0
+U019,5,1,149,4.1,24,1
+U020,11,6,2599,9.1,7,0
+U021,8,3,1099,6.5,14,1
+U022,17,10,4299,10.8,3,0
+U023,6,2,399,5.3,19,1
+U024,23,16,8299,13.5,1,0
+U025,5,1,89,3.5,26,1
+U026,13,7,3199,9.5,5,0
+U027,9,3,1199,7.0,11,0
+U028,7,2,559,5.6,17,1
+U029,21,14,7299,12.9,1,0
+U030,4,1,69,3.0,29,1
+U031,12,5,1999,8.8,4,0
+U032,8,3,999,6.2,13,1
+U033,19,11,5299,11.8,2,0
+U034,5,1,199,4.3,23,1
+U035,15,8,3599,10.2,5,0
+  </script>
+
+  <!-- 默认代码 -->
+  <script type="text/plain" id="default-code">import pandas as pd
+
+print("=== 数据概览 ===")
+print(f"总用户数: {len(df)}")
+print(f"数据维度: {df.shape}")
+print("\n前 5 行:")
+show(df.head())
+
+print("\n=== 流失占比 ===")
+churn_count = df['is_churned'].value_counts()
+print(churn_count)
+print(f"\n流失率: {df['is_churned'].mean():.2%}")
+
+print("\n=== 数值列描述统计 ===")
+show(df.describe())
+
+print("\n=== 下一步建议 ===")
+print("1. 计算相关矩阵 df.corr()，观察哪些特征与 is_churned 最相关")
+print("2. 选择特征列 feature_cols，构造 X / y")
+print("3. train_test_split 切分训练/测试集")
+print("4. 训练 LogisticRegression + RandomForest 并对比准确率")
+print("5. 打印混淆矩阵、特征重要性与高风险用户列表")
+</script>
+
+  <!-- 参考答案代码 -->
+  <script type="text/plain" id="answer-code">import pandas as pd
+
+# ========= 1. 数据探索 =========
+print("=== 1. 数据探索 ===")
+print(f"总用户数: {len(df)}")
+print(f"流失用户: {df['is_churned'].sum()}")
+print(f"流失率: {df['is_churned'].mean():.2%}")
+
+print("\n=== 描述统计 ===")
+show(df.describe())
+
+print("\n=== 相关矩阵 ===")
+show(df.corr(numeric_only=True).round(3))
+
+# ========= 2. 特征准备 =========
+print("\n=== 2. 特征与标签准备 ===")
+feature_cols = ['days_active', 'total_orders', 'total_amount',
+                'avg_session_min', 'last_active_days_ago']
+X = df[feature_cols]
+y = df['is_churned']
+print(f"特征维度: {X.shape}")
+print(f"特征列: {feature_cols}")
+
+# ========= 3. 切分训练/测试集 =========
+print("\n=== 3. 训练集/测试集切分 ===")
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y)
+print(f"训练集: {len(X_train)} 条")
+print(f"测试集: {len(X_test)} 条")
+
+# ========= 4. 训练 LogisticRegression =========
+print("\n=== 4. LogisticRegression ===")
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+lr = LogisticRegression(max_iter=1000)
+lr.fit(X_train, y_train)
+y_pred_lr = lr.predict(X_test)
+print(f"准确率: {accuracy_score(y_test, y_pred_lr):.4f}")
+print("混淆矩阵:")
+print(confusion_matrix(y_test, y_pred_lr))
+
+# ========= 5. 训练 RandomForest =========
+print("\n=== 5. RandomForestClassifier ===")
+from sklearn.ensemble import RandomForestClassifier
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+y_pred_rf = rf.predict(X_test)
+print(f"准确率: {accuracy_score(y_test, y_pred_rf):.4f}")
+print("混淆矩阵:")
+print(confusion_matrix(y_test, y_pred_rf))
+print("\n分类报告:")
+print(classification_report(y_test, y_pred_rf, zero_division=0))
+
+# ========= 6. 特征重要性 =========
+print("\n=== 6. 随机森林 - 特征重要性 ===")
+importance_df = pd.DataFrame({
+    'feature': feature_cols,
+    'importance': rf.feature_importances_
+}).sort_values('importance', ascending=False).reset_index(drop=True)
+importance_df['importance'] = importance_df['importance'].round(4)
+show(importance_df)
+
+# ========= 7. 高流失风险用户列表 =========
+print("\n=== 7. 全量用户流失预测 / 高风险列表 ===")
+df_pred = df.copy()
+df_pred['churn_prob'] = rf.predict_proba(X)[:, 1]
+high_risk = df_pred[df_pred['churn_prob'] >= 0.7].sort_values(
+    'churn_prob', ascending=False)[['user_id', 'days_active',
+                                    'total_amount', 'last_active_days_ago',
+                                    'is_churned', 'churn_prob']]
+high_risk['churn_prob'] = (high_risk['churn_prob'] * 100).round(1).astype(str) + '%'
+print(f"流失概率 >= 70% 的用户数: {len(high_risk)}")
+show(high_risk)
+
+print("\n=== 结论 ===")
+print(f"- 数据集中整体流失率 {df['is_churned'].mean():.2%}")
+print(f"- RandomForest 测试集准确率: {accuracy_score(y_test, y_pred_rf):.2%}")
+print(f"- last_active_days_ago（距上次活跃天数）是最重要的流失特征")
+print(f"- 建议对高风险用户发送优惠券 / 召回活动以降低流失")
+</script>
+
+  <script src="../common/storage.js"></script>
+  <script src="../common/pyodide_setup.js"></script>
+  <script src="../common/code_runner.js"></script>
+
+  <script>
+    const PROJECT_ID = '03_user_churn';
+    const PROJECT_TITLE = '用户流失预测建模';
+
+    // --- 解析 CSV 并生成数据预览表格 ---
+    (function() {
+      const csvEl = document.getElementById('csv-data');
+      const csvText = csvEl.textContent.trim();
+      const lines = csvText.split('\n').map(l => l.trim()).filter(l => l);
+      const table = document.getElementById('data-table');
+      if (!table || lines.length === 0) return;
+      const header = lines[0].split(',');
+      let html = '<thead><tr>';
+      header.forEach(h => { html += '<th>' + h + '</th>'; });
+      html += '</tr></thead><tbody>';
+      for (let i = 1; i < lines.length; i++) {
+        const cells = lines[i].split(',');
+        html += '<tr>';
+        cells.forEach(c => { html += '<td>' + c + '</td>'; });
+        html += '</tr>';
+      }
+      html += '</tbody>';
+      table.innerHTML = html;
+    })();
+
+    // --- Vue 应用 ---
+    const { createApp } = Vue;
+    let cmEditor = null;
+
+    createApp({
+      data() {
+        return {
+          completed: PandasCampStorage.isCompleted(PROJECT_ID)
+        };
+      },
+      mounted() {
+        this.initEditor();
+      },
+      methods: {
+        switchTab(tab) {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          const btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+          const content = document.getElementById('tab-' + tab);
+          if (btn) btn.classList.add('active');
+          if (content) content.classList.add('active');
+        },
+        initEditor() {
+          const self = this;
+          import('codemirror').then(({ EditorView, basicSetup }) => {
+            Promise.all([
+              import('@codemirror/state'),
+              import('@codemirror/view'),
+              import('@codemirror/lang-python'),
+              import('@codemirror/theme-one-dark')
+            ]).then(([stateMod, viewMod, pyMod, themeMod]) => {
+              const defaultCode = document.getElementById('default-code').textContent;
+              const saved = PandasCampStorage.getCode(PROJECT_ID);
+              const initial = saved || defaultCode;
+
+              cmEditor = new EditorView({
+                doc: initial,
+                extensions: [
+                  basicSetup,
+                  pyMod.python(),
+                  themeMod.oneDark,
+                  stateMod.EditorState.updateListener.of((update) => {
+                    if (update.docChanged) {
+                      PandasCampStorage.saveCode(PROJECT_ID, cmEditor.state.doc.toString());
+                    }
+                  })
+                ],
+                parent: document.getElementById('editor-container')
+              });
+            });
+          });
+        },
+        runCode() {
+          const code = cmEditor.state.doc.toString();
+          const csvText = document.getElementById('csv-data').textContent.trim();
+          const output = document.getElementById('output');
+          PandasCampRunner.run(code, csvText, output, null);
+        },
+        resetCode() {
+          const defaultCode = document.getElementById('default-code').textContent;
+          const currentLen = cmEditor.state.doc.length;
+          cmEditor.dispatch({
+            changes: { from: 0, to: currentLen, insert: defaultCode }
+          });
+          PandasCampStorage.clearCode(PROJECT_ID);
+          document.getElementById('output').innerHTML = '<pre class="text-output muted">代码已重置为默认模板</pre>';
+        },
+        showAnswer() {
+          const answerCode = document.getElementById('answer-code').textContent;
+          const currentLen = cmEditor.state.doc.length;
+          cmEditor.dispatch({
+            changes: { from: 0, to: currentLen, insert: answerCode }
+          });
+          PandasCampStorage.saveCode(PROJECT_ID, answerCode);
+          document.getElementById('output').innerHTML = '<pre class="text-output muted">已加载参考答案，可点击运行查看结果</pre>';
+        },
+        markDone() {
+          PandasCampStorage.markComplete(PROJECT_ID);
+          this.completed = true;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

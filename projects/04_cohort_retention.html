@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>购物车放弃分析 · Pandas 数据分析实战训练营</title>
+  <title>用户留存率与 Cohort 分析 · Pandas 数据分析实战训练营</title>
   <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../common/style.css" />
@@ -33,11 +33,11 @@
     <!-- 项目头部 -->
     <header class="project-header">
       <div class="meta-row">
-        <span class="project-num">项目 01 / 10</span>
-        <span class="tag tag-入门">入门</span>
+        <span class="project-num">项目 04 / 10</span>
+        <span class="tag tag-中等">中等</span>
       </div>
-      <h1>购物车放弃分析</h1>
-      <p class="description">在电商平台中，很多用户会将商品加入购物车但最终并未完成支付。通过分析加购未付款行为，我们可以计算放弃率、分析时段趋势、识别高风险商品，优化转化漏斗。</p>
+      <h1>用户留存率与 Cohort 分析</h1>
+      <p class="description">按用户首月划分 Cohort，计算第 N 周/月的留存率矩阵，直观呈现产品粘性和用户生命周期价值。</p>
     </header>
 
     <main class="project-main">
@@ -59,64 +59,75 @@
           <h3><span class="panel-icon">📖</span>核心知识点</h3>
           <div class="knowledge-grid">
             <div class="knowledge-card">
-              <div class="kp-title">Pandas DataFrame 基础</div>
-              <div class="kp-desc">DataFrame 是 pandas 的核心数据结构，类似于 Excel 表格。每列是一个 Series，每行代表一条记录。常用操作：<span class="inline-code">df.head()</span> 查看前几行、<span class="inline-code">df.shape</span> 查看数据维度、<span class="inline-code">df.columns</span> 查看列名。</div>
+              <div class="kp-title">👥 Cohort 基本概念</div>
+              <div class="kp-desc">按用户"注册月/首次活跃月"分组，纵向追踪同一批用户在后续月份的留存。行=Cohort，列=第 N 月留存。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">🧮 分组聚合 groupby</div>
-              <div class="kp-desc"><span class="inline-code">df.groupby('列名')</span> 可以按指定列分组。常用聚合函数：<span class="inline-code">count()</span> 计数、<span class="inline-code">sum()</span> 求和、<span class="inline-code">mean()</span> 平均值、<span class="inline-code">max()/min()</span> 极值。组合使用可以生成丰富的统计报告。</div>
+              <div class="kp-title">📅 月差计算</div>
+              <div class="kp-desc">两个月份字符串转 <span class="inline-code">pd.Period</span>，相减得到 <span class="inline-code">month_offset</span>（N 个月后）。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">📊 条件筛选与布尔索引</div>
-              <div class="kp-desc"><span class="inline-code">df[df['price'] > 100]</span> 筛选价格大于 100 的记录。支持 <span class="inline-code">&amp;</span>(与)、<span class="inline-code">|</span>(或) 组合条件。组合多个条件时每个条件需用括号包裹。</div>
+              <div class="kp-title">🔄 pivot_table 透视</div>
+              <div class="kp-desc"><span class="inline-code">pd.pivot_table</span>：index=Cohort，columns=month_offset，values=user_id 去重计数。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">⏰ 时间格式处理</div>
-              <div class="kp-desc"><span class="inline-code">pd.to_datetime()</span> 可以将字符串转为 datetime 对象，<span class="inline-code">dt.hour</span> 提取小时，<span class="inline-code">dt.date</span> 提取日期。按时间分组可以分析趋势。</div>
+              <div class="kp-title">🎨 可视化矩阵表格</div>
+              <div class="kp-desc">百分数表格（热力图效果），容易识别留存"断崖"位置。可用 style.background_gradient 进一步美化。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">🔢 新增列与计算列</div>
-              <div class="kp-desc"><span class="inline-code">df['new_col'] = df['a'] + df['b']</span> 可以新增列。也可以基于条件用 <span class="inline-code">np.where</span> 或 <span class="inline-code">apply</span> 生成新字段。</div>
+              <div class="kp-title">🧹 数据去重与去噪</div>
+              <div class="kp-desc">同一用户同月可能有多次记录，需 <span class="inline-code">drop_duplicates</span> 去重，避免被重复计入。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">📈 基本统计与 describe()</div>
-              <div class="kp-desc"><span class="inline-code">df.describe()</span> 可以生成数值列的统计概览（均值/分位数/最大最小值）。<span class="inline-code">value_counts()</span> 用于计数分类字段分布。</div>
+              <div class="kp-title">📈 用户规模与留存解读</div>
+              <div class="kp-desc">大 cohort 更稳定，小 cohort 波动大。解读需结合样本量与业务事件（如版本发布、活动等）。</div>
             </div>
           </div>
         </div>
 
         <div class="panel">
           <h3><span class="panel-icon">💻</span>核心函数速查</h3>
-          <pre class="code-block"><span class="code-comment"># 数据概览</span>
-df.head()          <span class="code-comment"># 查看前5行</span>
-df.shape           <span class="code-comment"># 返回 (行数, 列数)</span>
-df.describe()      <span class="code-comment"># 统计描述</span>
-df.dtypes          <span class="code-comment"># 各列数据类型</span>
-df['col'].value_counts()  <span class="code-comment"># 分类分布</span>
+          <pre class="code-block"><span class="code-comment"># 基础聚合</span>
+df.groupby('active_month')['user_id'].nunique()
 
-<span class="code-comment"># 筛选与过滤</span>
-df[df['price'] > 100]
-df[(df['a'] > 10) &amp; (df['b'] < 20)]
-df.loc[df['a'] > 10, 'b'].mean()
+<span class="code-comment"># 去重</span>
+df = df.drop_duplicates(['user_id', 'active_month'])
 
-<span class="code-comment"># 分组聚合</span>
-df.groupby('cat')['price'].sum()
-df.groupby('cat').agg({'price': 'mean', 'id': 'count'})
+<span class="code-comment"># Period 转换</span>
+df['first_period'] = pd.PeriodIndex(df['first_active_month'], freq='M')
+df['active_period'] = pd.PeriodIndex(df['active_month'], freq='M')
+df['month_offset'] = (df['active_period'] - df['first_period']
+                      ).apply(lambda x: x.n)
 
-<span class="code-comment"># 时间处理</span>
-df['time'] = pd.to_datetime(df['time'])
-df['hour'] = df['time'].dt.hour</pre>
+<span class="code-comment"># pivot_table 矩阵</span>
+cohort_counts = df.pivot_table(
+    index='first_active_month',
+    columns='month_offset',
+    values='user_id',
+    aggfunc='nunique'
+)
+
+<span class="code-comment"># 归一化（以初始 cohort 数量为基准）</span>
+cohort_size = cohort_counts[0]
+retention = cohort_counts.divide(cohort_size, axis=0)
+retention = retention.round(3) * 100
+
+<span class="code-comment"># 格式化</span>
+retention_style = retention.style.format('{:.1f}%')</pre>
         </div>
 
         <div class="panel">
           <h3><span class="panel-icon">🎯</span>分析目标</h3>
           <div class="lesson-section">
-            <p>本项目将围绕购物车放弃行为，按以下步骤展开分析：</p>
+            <p>本项目将围绕 Cohort 留存，按以下步骤展开分析：</p>
             <ul>
-              <li><strong>整体放弃率</strong>：总加购数中未完成支付的比例</li>
-              <li><strong>按时段分析</strong>：按小时分组查看放弃率的时间分布</li>
-              <li><strong>按商品分析</strong>：哪些商品最容易被放弃，是否与价格相关</li>
-              <li><strong>支付时长统计</strong>：完成支付的订单平均耗时多少</li>
+              <li><strong>去重处理</strong>：按 user_id + active_month 去重，避免重复计入</li>
+              <li><strong>基础统计</strong>：按月份统计活跃用户数、各 cohort 初始用户数</li>
+              <li><strong>month_offset 计算</strong>：活跃月 - 首月 = 第 N 月</li>
+              <li><strong>pivot_table 矩阵</strong>：行=Cohort，列=month_offset</li>
+              <li><strong>留存率归一化</strong>：除以 cohort 初始用户数得到百分比</li>
+              <li><strong>打印热力表</strong>：各 cohort 在各月的留存率</li>
+              <li><strong>首月 cohort 留存对比</strong>：对比不同 cohort 的 M1/M2 留存差异</li>
             </ul>
           </div>
         </div>
@@ -128,16 +139,13 @@ df['hour'] = df['time'].dt.hour</pre>
           <h3><span class="panel-icon">📋</span>数据集字段说明</h3>
           <div class="field-list">
             <div class="field-item"><span class="f-name">user_id</span><span class="f-desc">用户唯一标识</span></div>
-            <div class="field-item"><span class="f-name">item_id</span><span class="f-desc">商品 ID</span></div>
-            <div class="field-item"><span class="f-name">add_time</span><span class="f-desc">加购时间</span></div>
-            <div class="field-item"><span class="f-name">payment_time</span><span class="f-desc">支付时间（空表示放弃）</span></div>
-            <div class="field-item"><span class="f-name">price</span><span class="f-desc">商品价格</span></div>
-            <div class="field-item"><span class="f-name">quantity</span><span class="f-desc">加购数量</span></div>
+            <div class="field-item"><span class="f-name">first_active_month</span><span class="f-desc">用户首次活跃月份（如 2024-01）</span></div>
+            <div class="field-item"><span class="f-name">active_month</span><span class="f-desc">该用户该月是否活跃</span></div>
           </div>
         </div>
 
         <div class="panel">
-          <h3><span class="panel-icon">🔍</span>数据预览（30 行样例）</h3>
+          <h3><span class="panel-icon">🔍</span>数据预览（60 行样例）</h3>
           <div class="data-scroll">
             <table class="data-table" id="data-table"></table>
           </div>
@@ -171,123 +179,168 @@ df['hour'] = df['time'].dt.hour</pre>
 
   <!-- CSV 数据 -->
   <script type="text/csv" id="csv-data">
-user_id,item_id,add_time,payment_time,price,quantity
-U001,SK001,2024-03-01 08:12,2024-03-01 08:15,199,1
-U002,SK002,2024-03-01 09:30,,89,2
-U003,SK003,2024-03-01 10:05,2024-03-01 10:10,459,1
-U004,SK004,2024-03-01 11:20,,129,3
-U005,SK001,2024-03-01 12:00,2024-03-01 12:05,199,2
-U006,SK005,2024-03-01 13:40,,29,1
-U007,SK002,2024-03-01 14:15,2024-03-01 14:22,89,1
-U008,SK006,2024-03-01 15:30,,599,1
-U009,SK003,2024-03-01 16:45,2024-03-01 16:55,459,1
-U010,SK007,2024-03-01 17:00,,39,5
-U011,SK001,2024-03-01 18:20,2024-03-01 18:25,199,1
-U012,SK008,2024-03-01 19:10,,799,1
-U013,SK004,2024-03-01 20:00,2024-03-01 20:08,129,2
-U014,SK002,2024-03-01 21:15,,89,1
-U015,SK009,2024-03-02 08:30,2024-03-02 08:40,1299,1
-U016,SK001,2024-03-02 09:00,,199,2
-U017,SK010,2024-03-02 10:20,2024-03-02 10:25,49,3
-U018,SK003,2024-03-02 11:10,,459,1
-U019,SK005,2024-03-02 12:30,2024-03-02 12:35,29,2
-U020,SK002,2024-03-02 13:50,,89,1
-U021,SK006,2024-03-02 14:20,2024-03-02 14:28,599,1
-U022,SK001,2024-03-02 15:00,,199,1
-U023,SK007,2024-03-02 16:15,2024-03-02 16:20,39,4
-U024,SK008,2024-03-02 18:30,,799,1
-U025,SK003,2024-03-02 19:45,2024-03-02 19:50,459,1
-U026,SK009,2024-03-02 20:20,,1299,1
-U027,SK004,2024-03-02 21:00,2024-03-02 21:05,129,1
-U028,SK001,2024-03-03 08:15,,199,1
-U029,SK002,2024-03-03 09:40,2024-03-03 09:45,89,3
-U030,SK010,2024-03-03 10:30,,49,2
+user_id,first_active_month,active_month
+U201,2024-01,2024-01
+U201,2024-01,2024-02
+U201,2024-01,2024-03
+U202,2024-01,2024-01
+U202,2024-01,2024-02
+U203,2024-01,2024-01
+U203,2024-01,2024-03
+U204,2024-01,2024-01
+U205,2024-02,2024-02
+U205,2024-02,2024-03
+U206,2024-02,2024-02
+U206,2024-02,2024-03
+U207,2024-02,2024-02
+U208,2024-02,2024-02
+U209,2024-02,2024-02
+U210,2024-01,2024-01
+U210,2024-01,2024-02
+U210,2024-01,2024-03
+U211,2024-01,2024-01
+U211,2024-01,2024-02
+U212,2024-02,2024-02
+U212,2024-02,2024-03
+U213,2024-02,2024-02
+U214,2024-01,2024-01
+U214,2024-01,2024-02
+U215,2024-01,2024-01
+U215,2024-01,2024-03
+U216,2024-01,2024-01
+U217,2024-02,2024-02
+U217,2024-02,2024-03
+U218,2024-01,2024-01
+U218,2024-01,2024-02
+U219,2024-01,2024-01
+U219,2024-01,2024-02
+U219,2024-01,2024-03
+U220,2024-02,2024-02
+U221,2024-01,2024-01
+U221,2024-01,2024-02
+U222,2024-01,2024-01
+U222,2024-01,2024-02
+U222,2024-01,2024-03
+U223,2024-02,2024-02
+U223,2024-02,2024-03
+U224,2024-01,2024-01
+U224,2024-01,2024-02
+U225,2024-01,2024-01
+U226,2024-02,2024-02
+U227,2024-01,2024-01
+U227,2024-01,2024-03
+U228,2024-01,2024-01
+U228,2024-01,2024-02
+U229,2024-02,2024-02
+U230,2024-01,2024-01
+U230,2024-01,2024-02
+U230,2024-01,2024-03
+U231,2024-02,2024-02
+U231,2024-02,2024-03
+U232,2024-01,2024-01
+U232,2024-01,2024-03
+U233,2024-01,2024-01
+U233,2024-01,2024-02
+U233,2024-01,2024-03
   </script>
 
   <!-- 默认代码 -->
   <script type="text/plain" id="default-code">import pandas as pd
-import io
 
 print("=== 数据概览 ===")
 print(f"总记录数: {len(df)}")
-print(f"数据维度: {df.shape}")
-print("\n前5行:")
-show(df.head())
+print(f"独立用户数: {df['user_id'].nunique()}")
+show(df.head(10))
 
-print("\n=== 基础统计 ===")
-show(df.describe())
+print("\n=== 各月活跃记录数 ===")
+by_month = df.groupby('active_month')['user_id'].nunique().reset_index()
+by_month.columns = ['active_month', 'active_users']
+show(by_month)
 
-print("\n=== 各字段非空数量 ===")
-print(df.count())
+print("\n=== 各 cohort 首月用户数 ===")
+cohort_size = df.groupby('first_active_month')['user_id'].nunique().reset_index()
+cohort_size.columns = ['first_active_month', 'cohort_users']
+show(cohort_size)
 
 print("\n=== 下一步建议 ===")
-print("1. 将 add_time/payment_time 转为 datetime 类型")
-print("2. 新增 is_abandoned 列标记购物车是否被放弃")
-print("3. 计算整体放弃率")
-print("4. 按小时分组分析")
-print("5. 按商品分组分析")
+print("1. drop_duplicates 对 user_id + active_month 去重")
+print("2. 计算 month_offset = active_month 与 first_active_month 的月差")
+print("3. pivot_table 构造矩阵")
+print("4. 归一化得到留存率 %")
+print("5. 格式化并打印表格")
 </script>
 
   <!-- 参考答案代码 -->
   <script type="text/plain" id="answer-code">import pandas as pd
-import io
 
-# ========= 1. 数据预处理 =========
-df['add_time'] = pd.to_datetime(df['add_time'])
-df['payment_time'] = pd.to_datetime(df['payment_time'])
-df['is_abandoned'] = df['payment_time'].isna()
-df['hour'] = df['add_time'].dt.hour
-df['date'] = df['add_time'].dt.date
+# ========= 1. 数据去重与概览 =========
+print("=== 1. 数据去重 ===")
+print(f"原始记录: {len(df)}")
+df = df.drop_duplicates(['user_id', 'active_month']).reset_index(drop=True)
+print(f"去重后记录: {len(df)}")
+print(f"独立用户数: {df['user_id'].nunique()}")
 
-print("=== 数据清洗完成 ===")
-print(f"总加购记录: {len(df)}")
-show(df.head())
+print("\n=== 各月活跃用户 ===")
+monthly_active = df.groupby('active_month')['user_id'].nunique().reset_index()
+monthly_active.columns = ['active_month', 'active_users']
+show(monthly_active)
 
-# ========= 2. 整体放弃率 =========
-total = len(df)
-abandoned = df['is_abandoned'].sum()
-print(f"\n=== 整体放弃分析 ===")
-print(f"总加购数: {total}")
-print(f"放弃数: {abandoned}")
-print(f"支付数: {total - abandoned}")
-print(f"整体放弃率: {abandoned/total:.2%}")
+print("\n=== 各 cohort 初始用户数 ===")
+cohort_size = df.groupby('first_active_month')['user_id'].nunique().reset_index()
+cohort_size.columns = ['first_active_month', 'cohort_size']
+show(cohort_size)
 
-# ========= 3. 按小时分组放弃率 =========
-print("\n=== 按时段（小时）统计放弃率 ===")
-by_hour = df.groupby('hour').agg(
-  加购数=('is_abandoned', 'count'),
-  放弃数=('is_abandoned', 'sum')
-).reset_index()
-by_hour['放弃率'] = (by_hour['放弃数'] / by_hour['加购数'] * 100).round(1).astype(str) + '%'
-by_hour = by_hour.sort_values('放弃数', ascending=False)
-show(by_hour)
+# ========= 2. month_offset 计算 =========
+print("\n=== 2. 计算 month_offset（活跃月 - 首月）===")
+df['first_period'] = pd.PeriodIndex(df['first_active_month'], freq='M')
+df['active_period'] = pd.PeriodIndex(df['active_month'], freq='M')
 
-# ========= 4. 按商品分组 =========
-print("\n=== 按商品统计放弃情况 ===")
-by_item = df.groupby('item_id').agg(
-  加购数=('is_abandoned', 'count'),
-  放弃数=('is_abandoned', 'sum'),
-  平均价格=('price', 'mean'),
-  总数量=('quantity', 'sum')
-).reset_index()
-by_item['放弃率'] = (by_item['放弃数'] / by_item['加购数'] * 100).round(1).astype(str) + '%'
-by_item = by_item.sort_values('放弃数', ascending=False)
-show(by_item)
+def month_diff(row):
+    return (row['active_period'] - row['first_period']).n
 
-# ========= 5. 支付时长分析 =========
-print("\n=== 已支付订单的支付时长分析 ===")
-paid = df[~df['is_abandoned']].copy()
-paid['pay_minutes'] = (paid['payment_time'] - paid['add_time']).dt.total_seconds() / 60
-print(f"已支付订单: {len(paid)}")
-print(f"平均支付时长: {paid['pay_minutes'].mean():.1f} 分钟")
-print(f"中位数: {paid['pay_minutes'].median():.1f} 分钟")
-print(f"最短: {paid['pay_minutes'].min():.1f} 分钟")
-print(f"最长: {paid['pay_minutes'].max():.1f} 分钟")
+df['month_offset'] = df.apply(month_diff, axis=1)
+show(df[['user_id', 'first_active_month', 'active_month', 'month_offset']].head(10))
+
+# ========= 3. pivot_table 矩阵 =========
+print("\n=== 3. Cohort × month_offset 计数矩阵 ===")
+cohort_counts = df.pivot_table(
+    index='first_active_month',
+    columns='month_offset',
+    values='user_id',
+    aggfunc='nunique'
+).fillna(0).astype(int)
+show(cohort_counts)
+
+# ========= 4. 归一化得到留存率 =========
+print("\n=== 4. 留存率矩阵（%）===")
+base = cohort_counts.iloc[:, 0]
+retention = cohort_counts.divide(base, axis=0)
+retention_pct = (retention.round(3) * 100)
+show(retention_pct)
+
+# ========= 5. 格式化输出 =========
+print("\n=== 5. 格式化留存表（含 %）===")
+formatted = retention_pct.copy()
+for col in formatted.columns:
+    formatted[col] = formatted[col].apply(lambda x: f"{x:.1f}%")
+show(formatted)
+
+# ========= 6. 首月 cohort 留存对比 =========
+print("\n=== 6. 各 cohort 的 M0 / M1 / M2 留存对比 ===")
+summary = pd.DataFrame({
+    'cohort': cohort_counts.index,
+    'cohort_size': base.astype(int),
+    'M0 留存(%)': retention_pct[0].round(1),
+    'M1 留存(%)': retention_pct.get(1, pd.Series(0, index=retention_pct.index)).round(1),
+    'M2 留存(%)': retention_pct.get(2, pd.Series(0, index=retention_pct.index)).round(1)
+})
+show(summary)
 
 print("\n=== 结论 ===")
-print(f"- 总体放弃率 {abandoned/total:.2%}，每 100 次加购有 {abandoned/total*100:.0f} 次未支付")
-print(f"- 按时段分析，可以识别高风险时段并优化提醒策略")
-print(f"- 按商品分析，可以识别特别容易被放弃的商品")
+print(f"- 共 {len(cohort_counts)} 个 Cohort，观察期 {cohort_counts.shape[1] - 1} 个月")
+print(f"- M0 恒为 100%（首月自然留存）")
+print(f"- 典型 M1 留存约在 40%-60%，M2 约在 20%-40%")
+print(f"- 结合 cohort_size 较小的 cohort 数据波动较大，需要更长观察期")
 </script>
 
   <script src="../common/storage.js"></script>
@@ -295,8 +348,8 @@ print(f"- 按商品分析，可以识别特别容易被放弃的商品")
   <script src="../common/code_runner.js"></script>
 
   <script>
-    const PROJECT_ID = '01_cart_abandon';
-    const PROJECT_TITLE = '购物车放弃分析';
+    const PROJECT_ID = '04_cohort_retention';
+    const PROJECT_TITLE = '用户留存率与 Cohort 分析';
 
     // --- 解析 CSV 并生成数据预览表格 ---
     (function() {

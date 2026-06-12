@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>实时用户画像特征构建 · Pandas 数据分析实战训练营</title>
+  <title>商品关联推荐与购物篮分析 · Pandas 数据分析实战训练营</title>
   <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="../common/style.css" />
@@ -31,11 +31,11 @@
 
     <header class="project-header">
       <div class="meta-row">
-        <span class="project-num">项目 10 / 10</span>
-        <span class="tag tag-实战">实战</span>
+        <span class="project-num">项目 06 / 10</span>
+        <span class="tag tag-高级">高级</span>
       </div>
-      <h1>实时用户画像特征构建</h1>
-      <p class="description">模拟近 7 天用户行为日志，滑动窗口计算实时特征（近 1h/6h/24h 点击数、近 7 天消费总额等），构建实时画像输入。</p>
+      <h1>商品关联推荐与购物篮分析</h1>
+      <p class="description">使用 Apriori-like 的高频共现分析，挖掘用户订单中的商品搭配规律，生成 Top 推荐组合。</p>
     </header>
 
     <main class="project-main">
@@ -52,64 +52,62 @@
           <h3><span class="panel-icon">📖</span>核心知识点</h3>
           <div class="knowledge-grid">
             <div class="knowledge-card">
-              <div class="kp-title">🪟 滑动窗口</div>
-              <div class="kp-desc">以时间为索引，先取 cutoff 时间点，再过滤 [cutoff - window, cutoff] 范围内记录。</div>
+              <div class="kp-title">商品列表展开</div>
+              <div class="kp-desc">从 items 字符串切分到 list，再用 <span class="inline-code">explode</span> 展开成一行一个商品。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">👤 按用户聚合特征</div>
-              <div class="kp-desc">近 1h/6h/24h 的 click_count、view_count、purchase_count、total_purchase_amount。</div>
+              <div class="kp-title">🧮 两两组合生成</div>
+              <div class="kp-desc"><span class="inline-code">itertools.combinations</span> 生成 item pairs，用于统计共现频率。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">⏱️ pd.Timedelta</div>
-              <div class="kp-desc">时间窗口计算：<span class="inline-code">'1h'</span>、<span class="inline-code">'6h'</span>、<span class="inline-code">'24h'</span>、<span class="inline-code">'7 days'</span>。</div>
+              <div class="kp-title">📊 高频组合计数</div>
+              <div class="kp-desc">对组合 pair 做 <span class="inline-code">value_counts</span>，找出 Top 搭配。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">🔧 pivot 多特征输出</div>
-              <div class="kp-desc">用 <span class="inline-code">groupby + agg</span> 或多条件聚合生成宽表特征。</div>
+              <div class="kp-title">⚖️ 支持度/置信度</div>
+              <div class="kp-desc">support = 组合出现次数 / 总订单数；confidence(A→B) = support(A,B) / support(A)。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">🎯 实时画像落地</div>
-              <div class="kp-desc">对每个用户生成一个特征向量，便于下游推荐/风控模型使用。</div>
+              <div class="kp-title">🎯 推荐生成</div>
+              <div class="kp-desc">给定一个商品，找出 confidence 最高的 Top N 搭配商品。</div>
             </div>
             <div class="knowledge-card">
-              <div class="kp-title">❌ 特征缺失值填充</div>
-              <div class="kp-desc">用户无某窗口记录 → 填充 0。</div>
+              <div class="kp-title">🔧 itertools 在 pandas 中的使用</div>
+              <div class="kp-desc">将复杂逻辑包装成函数，再 <span class="inline-code">apply</span> 到每行。</div>
             </div>
           </div>
         </div>
 
         <div class="panel">
           <h3><span class="panel-icon">💻</span>核心函数速查</h3>
-          <pre class="code-block"><span class="code-comment"># 转 datetime 并设为索引</span>
-df['timestamp'] = pd.to_datetime(df['timestamp'])
-df = df.set_index('timestamp').sort_index()
+          <pre class="code-block"><span class="code-comment"># 字符串切分 + explode 展开</span>
+df['items_list'] = df['items'].str.split(',')
+df_exploded = df.explode('items_list')
 
-<span class="code-comment"># 取当前时间（最后一条记录时间）</span>
-now = df.index.max()
+<span class="code-comment"># 单商品频率</span>
+df_exploded['items_list'].value_counts()
 
-<span class="code-comment"># 滑动窗口过滤</span>
-def build_features(df, now, window_str):
-    start = now - pd.Timedelta(window_str)
-    sub = df[(df.index >= start) & (df.index <= now)]
-    feats = sub.groupby('user_id').agg(...)
-    return feats
+<span class="code-comment"># itertools.combinations 生成两两组合</span>
+from itertools import combinations
+pairs = list(combinations(sorted(items), 2))
 
-<span class="code-comment"># 多窗口合并，缺失值填 0</span>
-features = pd.concat([f1, f6, f24, f7d], axis=1).fillna(0)
-features.columns = ['click_1h', 'view_1h', ...]</pre>
+<span class="code-comment"># 支持度</span>
+support_AB = pair_count / total_orders
+<span class="code-comment"># 置信度 A→B</span>
+conf_AB = support_AB / support_A</pre>
         </div>
 
         <div class="panel">
           <h3><span class="panel-icon">🎯</span>分析目标</h3>
           <div class="lesson-section">
-            <p>本项目将围绕实时用户画像，按以下步骤展开：</p>
+            <p>本项目将围绕商品关联推荐，按以下步骤展开分析：</p>
             <ul>
-              <li><strong>日期转 datetime</strong>：解析时间戳并排序</li>
-              <li><strong>定义 now</strong>：以最后一条记录时间为当前时间</li>
-              <li><strong>build_features 函数</strong>：近 1h/6h/24h/7d 窗口特征</li>
-              <li><strong>对每个用户产出特征向量</strong>：宽表结构</li>
-              <li><strong>合并成完整特征矩阵</strong>：用户 × 特征宽表</li>
-              <li><strong>Top 高活跃用户展示</strong>：识别最活跃用户</li>
+              <li><strong>商品列表展开</strong>：items 字段切分成 list，explode 成一行一商品</li>
+              <li><strong>单商品频率</strong>：统计每个商品出现的订单数 Top</li>
+              <li><strong>两两组合生成</strong>：每个订单内做 combinations 生成 pair</li>
+              <li><strong>组合频率</strong>：统计高频商品组合</li>
+              <li><strong>支持度/置信度</strong>：计算推荐的核心指标</li>
+              <li><strong>单商品推荐函数</strong>：给定商品，输出 Top 搭配</li>
             </ul>
           </div>
         </div>
@@ -119,15 +117,13 @@ features.columns = ['click_1h', 'view_1h', ...]</pre>
         <div class="panel">
           <h3><span class="panel-icon">📋</span>数据集字段说明</h3>
           <div class="field-list">
-            <div class="field-item"><span class="f-name">timestamp</span><span class="f-desc">行为时间（YYYY-MM-DD HH:MM）</span></div>
-            <div class="field-item"><span class="f-name">user_id</span><span class="f-desc">用户 ID</span></div>
-            <div class="field-item"><span class="f-name">action</span><span class="f-desc">行为类型：click / view / purchase</span></div>
-            <div class="field-item"><span class="f-name">amount</span><span class="f-desc">消费金额（非 purchase 为 0）</span></div>
+            <div class="field-item"><span class="f-name">order_id</span><span class="f-desc">订单 ID</span></div>
+            <div class="field-item"><span class="f-name">items</span><span class="f-desc">订单内商品（逗号分隔）</span></div>
           </div>
         </div>
 
         <div class="panel">
-          <h3><span class="panel-icon">🔍</span>数据预览（50 行样例）</h3>
+          <h3><span class="panel-icon">🔍</span>数据预览（25 行样例）</h3>
           <div class="data-scroll">
             <table class="data-table" id="data-table"></table>
           </div>
@@ -158,156 +154,132 @@ features.columns = ['click_1h', 'view_1h', ...]</pre>
   </div>
 
   <script type="text/csv" id="csv-data">
-timestamp,user_id,action,amount
-2024-03-01 00:05,U301,view,0
-2024-03-01 00:20,U302,click,0
-2024-03-01 01:10,U301,view,0
-2024-03-01 02:30,U303,purchase,199
-2024-03-01 03:15,U302,view,0
-2024-03-01 04:00,U301,click,0
-2024-03-01 05:45,U304,purchase,399
-2024-03-01 06:20,U302,purchase,99
-2024-03-01 07:00,U301,click,0
-2024-03-01 08:15,U303,view,0
-2024-03-01 09:30,U301,purchase,599
-2024-03-01 10:00,U304,click,0
-2024-03-01 11:20,U302,view,0
-2024-03-01 12:10,U305,purchase,259
-2024-03-01 13:45,U301,click,0
-2024-03-02 08:00,U302,view,0
-2024-03-02 09:15,U301,purchase,399
-2024-03-02 10:30,U303,click,0
-2024-03-02 11:45,U304,view,0
-2024-03-02 12:30,U301,click,0
-2024-03-02 14:00,U302,purchase,199
-2024-03-02 15:20,U305,click,0
-2024-03-02 16:40,U303,view,0
-2024-03-02 18:00,U301,view,0
-2024-03-02 19:15,U304,purchase,499
-2024-03-03 08:30,U302,click,0
-2024-03-03 09:45,U301,purchase,299
-2024-03-03 10:30,U303,click,0
-2024-03-03 11:20,U305,view,0
-2024-03-03 13:00,U304,view,0
-2024-03-03 14:30,U301,click,0
-2024-03-03 15:45,U302,purchase,159
-2024-03-04 09:00,U303,purchase,399
-2024-03-04 10:20,U301,view,0
-2024-03-04 11:35,U304,click,0
-2024-03-04 13:00,U302,view,0
-2024-03-04 14:30,U305,purchase,329
-2024-03-04 16:00,U301,click,0
-2024-03-04 17:20,U303,click,0
-2024-03-05 08:00,U304,view,0
-2024-03-05 09:30,U301,purchase,459
-2024-03-05 10:45,U302,click,0
-2024-03-05 12:00,U303,view,0
-2024-03-05 13:30,U305,click,0
-2024-03-05 15:00,U301,view,0
-2024-03-05 16:15,U304,purchase,299
-2024-03-06 08:00,U302,click,0
-2024-03-06 09:30,U301,purchase,399
-2024-03-07 10:00,U303,view,0
-2024-03-07 14:00,U301,click,0
-2024-03-07 18:30,U302,purchase,259
-2024-03-07 23:50,U305,purchase,199
+order_id,items
+O001,"连衣裙,高跟鞋,耳环"
+O002,"运动鞋,T恤,帽子"
+O003,"连衣裙,高跟鞋"
+O004,"T恤,牛仔裤"
+O005,"运动鞋,T恤,帽子,袜子"
+O006,"连衣裙,耳环,项链"
+O007,"西装,衬衫,领带"
+O008,"运动鞋,帽子"
+O009,"牛仔裤,T恤,外套"
+O010,"连衣裙,高跟鞋,项链"
+O011,"西装,领带,皮鞋"
+O012,"T恤,牛仔裤,外套"
+O013,"运动鞋,T恤,袜子"
+O014,"连衣裙,耳环"
+O015,"西装,衬衫,皮鞋"
+O016,"帽子,外套,围巾"
+O017,"连衣裙,高跟鞋,耳环,项链"
+O018,"T恤,牛仔裤"
+O019,"运动鞋,袜子"
+O020,"西装,衬衫,领带,皮鞋"
+O021,"帽子,T恤,外套"
+O022,"连衣裙,高跟鞋"
+O023,"牛仔裤,外套"
+O024,"运动鞋,T恤,帽子,袜子"
+O025,"西装,衬衫,皮鞋,领带"
   </script>
 
   <script type="text/plain" id="default-code">import pandas as pd
 import io
 
-print("=== 基础探索 ===")
-print(f"总记录数: {len(df)}")
-print(f"用户数: {df['user_id'].nunique()}")
-print(f"行为类型分布:")
-print(df['action'].value_counts())
+print("=== 数据概览 ===")
+print(f"总订单数: {len(df)}")
 show(df.head())
 
-print("\n=== 简单按天聚合 ===")
-df['timestamp'] = pd.to_datetime(df['timestamp'])
-df['day'] = df['timestamp'].dt.date
-by_day = df.groupby('day').agg(
-    记录数=('user_id', 'count'),
-    用户数=('user_id', 'nunique'),
-    消费总额=('amount', 'sum')
-).reset_index()
-show(by_day)
+print("\n=== 单个商品出现次数统计 ===")
+df['items_list'] = df['items'].str.split(',')
+df_exploded = df.explode('items_list')
+item_counts = df_exploded['items_list'].value_counts().reset_index()
+item_counts.columns = ['商品', '出现次数']
+show(item_counts)
 
 print("\n=== 下一步建议 ===")
-print("1. 以最后一条记录时间为 now")
-print("2. 定义 build_features 函数（1h/6h/24h/7d）")
-print("3. 对每个用户产出特征向量")
-print("4. 合并成完整特征矩阵")
-print("5. 输出 Top 高活跃用户")
+print("1. 对每个订单生成商品两两组合（itertools.combinations）")
+print("2. 统计高频组合（value_counts）")
+print("3. 计算 support / confidence")
+print("4. 给定商品生成 Top 推荐搭配")
 </script>
 
   <script type="text/plain" id="answer-code">import pandas as pd
 import io
+from itertools import combinations
 
-# ========= 1. 日期转 datetime =========
-df['timestamp'] = pd.to_datetime(df['timestamp'])
-df = df.set_index('timestamp').sort_index()
+total_orders = len(df)
+print(f"=== 总订单数: {total_orders} ===")
 
-print("=== 数据概览 ===")
-print(f"总记录数: {len(df)}")
-print(f"用户数: {df['user_id'].nunique()}")
-print(f"时间范围: {df.index.min()} ~ {df.index.max()}")
-show(df.reset_index().head())
+# ========= 1. 商品列表展开 =========
+df['items_list'] = df['items'].str.split(',')
+df_exploded = df.explode('items_list')
 
-# ========= 2. 定义 now =========
-now = df.index.max()
-print(f"\n=== 当前时间 (now): {now} ===")
+print("\n=== 所有商品出现频率 Top ===")
+item_counts = df_exploded['items_list'].value_counts().reset_index()
+item_counts.columns = ['商品', '出现订单数']
+item_counts['support(%)'] = (item_counts['出现订单数'] / total_orders * 100).round(2)
+show(item_counts)
 
-all_users = df['user_id'].unique()
+# ========= 2. 两两组合生成 =========
+def gen_pairs(items):
+    items_sorted = sorted(set(items))
+    return list(combinations(items_sorted, 2))
 
-# ========= 3. build_features 函数 =========
-def build_features(df, now, window_str, prefix):
-    start = now - pd.Timedelta(window_str)
-    sub = df[(df.index >= start) & (df.index <= now)]
-    feats = sub.groupby('user_id').agg(
-        **{
-            f'{prefix}_click_count': ('action', lambda x: (x == 'click').sum()),
-            f'{prefix}_view_count': ('action', lambda x: (x == 'view').sum()),
-            f'{prefix}_purchase_count': ('action', lambda x: (x == 'purchase').sum()),
-            f'{prefix}_total_amount': ('amount', 'sum')
-        }
-    )
-    return feats
+all_pairs = []
+for items in df['items_list']:
+    all_pairs.extend(gen_pairs(items))
 
-# ========= 4. 各窗口计算 =========
-print("\n=== 近 1 小时特征 ===")
-f1 = build_features(df, now, '1h', 'f1h')
-show(f1.fillna(0).astype(int))
+pair_series = pd.Series([f"{a} & {b}" for a, b in all_pairs])
 
-print("\n=== 近 6 小时特征 ===")
-f6 = build_features(df, now, '6h', 'f6h')
-show(f6.fillna(0).astype(int))
+print("\n=== 组合频率 Top 10 ===")
+pair_counts = pair_series.value_counts().reset_index()
+pair_counts.columns = ['组合', '出现次数']
+pair_counts['support(%)'] = (pair_counts['出现次数'] / total_orders * 100).round(2)
+show(pair_counts.head(10))
 
-print("\n=== 近 24 小时特征 ===")
-f24 = build_features(df, now, '24h', 'f24h')
-show(f24.fillna(0).astype(int))
+# ========= 3. 支持度/置信度 =========
+item_support = (item_counts.set_index('商品')['出现订单数'] / total_orders).to_dict()
 
-print("\n=== 近 7 天特征 ===")
-f7d = build_features(df, now, '7 days', 'f7d')
-show(f7d.fillna(0).astype(int))
+pair_detail = []
+for (a, b) in set(combinations(sorted(set(df_exploded['items_list'])), 2)):
+    ab_key = f"{a} & {b}"
+    ab_count = (pair_series == ab_key).sum()
+    if ab_count == 0:
+        continue
+    support_ab = ab_count / total_orders
+    conf_ab = support_ab / item_support[a] if item_support[a] > 0 else 0
+    conf_ba = support_ab / item_support[b] if item_support[b] > 0 else 0
+    pair_detail.append({
+        '组合': ab_key,
+        'A': a,
+        'B': b,
+        '出现次数': ab_count,
+        'support': round(support_ab, 4),
+        'confidence(A→B)': round(conf_ab, 4),
+        'confidence(B→A)': round(conf_ba, 4)
+    })
 
-# ========= 5. 合并成完整特征矩阵 =========
-print("\n=== 完整特征矩阵（宽表）===")
-features = pd.concat([f1, f6, f24, f7d], axis=1).fillna(0).astype(int)
-features = features.reindex(all_users).fillna(0).astype(int)
-features.index.name = 'user_id'
-features = features.reset_index()
-show(features)
+pair_detail_df = pd.DataFrame(pair_detail).sort_values('confidence(A→B)', ascending=False)
 
-# ========= 6. Top 高活跃用户展示 =========
-print("\n=== Top 高活跃用户（近 7 天消费额降序）===")
-top_users = features.sort_values('f7d_total_amount', ascending=False).head(10)
-show(top_users[['user_id', 'f7d_purchase_count', 'f7d_total_amount', 'f7d_click_count', 'f7d_view_count']])
+print("\n=== 支持度 / 置信度 Top 10（按 A→B 置信度）===")
+show(pair_detail_df.head(10))
 
-print("\n=== 业务洞察 ===")
-print(f"- 用户 U301 近 7 天消费最高，属于高价值活跃用户，可推送 VIP 权益")
-print(f"- 部分用户仅 view/click 但未 purchase，属于潜在转化用户，可推送限时优惠券")
-print(f"- 实时特征矩阵可直接灌入推荐/风控模型，用于毫秒级个性化决策")
+# ========= 4. 单商品推荐函数 =========
+def recommend(item, top_n=5):
+    item_recs = pair_detail_df[(pair_detail_df['A'] == item) | (pair_detail_df['B'] == item)].copy()
+    item_recs['推荐商品'] = item_recs.apply(lambda r: r['B'] if r['A'] == item else r['A'], axis=1)
+    item_recs['置信度'] = item_recs.apply(lambda r: r['confidence(A→B)'] if r['A'] == item else r['confidence(B→A)'], axis=1)
+    result = item_recs[['推荐商品', '置信度', 'support', '出现次数']].sort_values('置信度', ascending=False).head(top_n)
+    return result
+
+print("\n=== 商品推荐示例 - 给已购买 '连衣裙' 的用户推荐 ===")
+show(recommend('连衣裙'))
+
+print("\n=== 商品推荐示例 - 给已购买 '西装' 的用户推荐 ===")
+show(recommend('西装'))
+
+print("\n=== 商品推荐示例 - 给已购买 '运动鞋' 的用户推荐 ===")
+show(recommend('运动鞋'))
 </script>
 
   <script src="../common/storage.js"></script>
@@ -315,8 +287,8 @@ print(f"- 实时特征矩阵可直接灌入推荐/风控模型，用于毫秒级
   <script src="../common/code_runner.js"></script>
 
   <script>
-    const PROJECT_ID = '10_realtime_feature';
-    const PROJECT_TITLE = '实时用户画像特征构建';
+    const PROJECT_ID = '06_product_recommend';
+    const PROJECT_TITLE = '商品关联推荐与购物篮分析';
 
     (function() {
       const csvEl = document.getElementById('csv-data');
@@ -324,12 +296,22 @@ print(f"- 实时特征矩阵可直接灌入推荐/风控模型，用于毫秒级
       const lines = csvText.split('\n').map(l => l.trim()).filter(l => l);
       const table = document.getElementById('data-table');
       if (!table || lines.length === 0) return;
-      let html = '<thead><tr>';
       const header = lines[0].split(',');
+      let html = '<thead><tr>';
       header.forEach(h => { html += '<th>' + h + '</th>'; });
       html += '</tr></thead><tbody>';
       for (let i = 1; i < lines.length; i++) {
-        const cells = lines[i].split(',');
+        let line = lines[i];
+        const cells = [];
+        let buf = '';
+        let inQuote = false;
+        for (let j = 0; j < line.length; j++) {
+          const ch = line[j];
+          if (ch === '"') { inQuote = !inQuote; continue; }
+          if (ch === ',' && !inQuote) { cells.push(buf); buf = ''; continue; }
+          buf += ch;
+        }
+        cells.push(buf);
         html += '<tr>';
         cells.forEach(c => { html += '<td>' + c + '</td>'; });
         html += '</tr>';

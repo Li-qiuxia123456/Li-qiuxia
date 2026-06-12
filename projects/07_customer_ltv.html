@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>客户终身价值 LTV 预测 · Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.4.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.26.3",
+      "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.0.1",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.2"
+    }
+  }
+  </script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="app">
+    <nav class="navbar">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="nav-progress">{{ completed ? '✓ 已完成' : '○ 未完成' }}</span>
+      </div>
+    </nav>
+
+    <header class="project-header">
+      <div class="meta-row">
+        <span class="project-num">项目 07 / 10</span>
+        <span class="tag tag-高级">高级</span>
+      </div>
+      <h1>客户终身价值 LTV 预测</h1>
+      <p class="description">基于历史消费数据预测用户的终身价值（LTV），帮助资源倾斜到高价值用户上。</p>
+    </header>
+
+    <main class="project-main">
+      <div v-if="completed" class="celebrate">🎉 恭喜！你已完成本项目。继续挑战下一个吧 →</div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="knowledge" @click="switchTab('knowledge')">📚 知识讲解</button>
+        <button class="tab-btn" data-tab="data" @click="switchTab('data')">📋 数据预览</button>
+        <button class="tab-btn" data-tab="code" @click="switchTab('code')">💻 代码实战</button>
+      </div>
+
+      <section class="tab-content active" id="tab-knowledge">
+        <div class="panel">
+          <h3><span class="panel-icon">📖</span>核心知识点</h3>
+          <div class="knowledge-grid">
+            <div class="knowledge-card">
+              <div class="kp-title">LTV 基本公式</div>
+              <div class="kp-desc">LTV = 历史累计消费 / (1 - 流失率) × 留存月数，或简化为 avg_monthly × 预测生命周期月数。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">🧮 历史消费聚合</div>
+              <div class="kp-desc"><span class="inline-code">total_amount</span> 求和，<span class="inline-code">avg_monthly = total / months</span>。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">📊 用户年限分布</div>
+              <div class="kp-desc">months 的分布决定了是否"成熟用户"，区分长期与新用户。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">📈 线性回归/中位数预测</div>
+              <div class="kp-desc">简单但稳健的起点，用历史月均 × 预测生命周期月数。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">🎯 用户分层</div>
+              <div class="kp-desc">高 LTV / 中 LTV / 低 LTV，结合首 3 月消费做早期 LTV 预测。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">💡 业务应用</div>
+              <div class="kp-desc">高 LTV 用户给予 VIP 服务、专属优惠券，提升留存。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">💻</span>核心函数速查</h3>
+          <pre class="code-block"><span class="code-comment"># 字符串切分 monthly_amount（注意引号）</span>
+df['monthly_list'] = df['monthly_amount'].str.strip('"').str.split(',')
+df['monthly_list'] = df['monthly_list'].apply(lambda x: [int(i) for i in x])
+
+<span class="code-comment"># 总消费与月均</span>
+df['total_amount'] = df['monthly_list'].apply(sum)
+df['avg_monthly'] = df['total_amount'] / df['total_months']
+
+<span class="code-comment"># 基于中位数生命周期预测</span>
+median_months = df['total_months'].median()
+df['ltv_median'] = df['avg_monthly'] * median_months
+
+<span class="code-comment"># 用户分层</span>
+df['segment'] = pd.qcut(df['ltv_median'], q=3, labels=['低价值', '中价值', '高价值'])</pre>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">🎯</span>分析目标</h3>
+          <div class="lesson-section">
+            <p>本项目将围绕客户终身价值预测，按以下步骤展开分析：</p>
+            <ul>
+              <li><strong>历史汇总</strong>：计算每位用户的累计消费、月均消费</li>
+              <li><strong>用户年限分布</strong>：看看 total_months 分布</li>
+              <li><strong>预测生命周期</strong>：基于中位数/分位数预测未来月数</li>
+              <li><strong>LTV = 月均 × 生命周期</strong>：输出每个用户的预测终身价值</li>
+              <li><strong>用户分层</strong>：按 LTV 分档，高/中/低价值</li>
+              <li><strong>Top 高价值用户名单</strong>：找出需重点服务的用户</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-content" id="tab-data">
+        <div class="panel">
+          <h3><span class="panel-icon">📋</span>数据集字段说明</h3>
+          <div class="field-list">
+            <div class="field-item"><span class="f-name">user_id</span><span class="f-desc">用户 ID</span></div>
+            <div class="field-item"><span class="f-name">signup_date</span><span class="f-desc">注册日期</span></div>
+            <div class="field-item"><span class="f-name">total_months</span><span class="f-desc">已消费月数</span></div>
+            <div class="field-item"><span class="f-name">total_purchases</span><span class="f-desc">总购买次数</span></div>
+            <div class="field-item"><span class="f-name">avg_order_value</span><span class="f-desc">平均订单金额</span></div>
+            <div class="field-item"><span class="f-name">monthly_amount</span><span class="f-desc">每月消费金额（逗号分隔）</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">🔍</span>数据预览（22 行样例）</h3>
+          <div class="data-scroll">
+            <table class="data-table" id="data-table"></table>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-content" id="tab-code">
+        <div class="panel">
+          <h3><span class="panel-icon">💻</span>代码实战</h3>
+          <div class="info-box"><code style="background:transparent;padding:0;">df</code> 变量已自动加载，可直接使用。运行代码后，<code style="background:transparent;padding:0;">print</code> 输出将显示在下方控制台，<code style="background:transparent;padding:0;">show(df)</code> 可以将 DataFrame 渲染为表格。</div>
+
+          <div id="editor-container" class="cm-container"></div>
+
+          <div class="btn-row">
+            <button class="btn" @click="runCode">▶ 运行代码</button>
+            <button class="btn btn-secondary" @click="resetCode">重置代码</button>
+            <button class="btn btn-secondary" @click="showAnswer">查看参考答案</button>
+          </div>
+
+          <div id="output" class="output-console" style="margin-top:18px;">点击"运行代码"查看结果...</div>
+        </div>
+
+        <div class="panel" style="text-align:center;">
+          <button class="btn btn-success" style="font-size:16px; padding:14px 30px;" @click="markDone">🎖️ 标记项目完成</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="text/csv" id="csv-data">
+user_id,signup_date,total_months,total_purchases,avg_order_value,monthly_amount
+C001,2023-06-01,10,25,399,"399,499,299,599,699,399,299,499,599,399"
+C002,2023-08-01,8,12,259,"299,199,259,199,299,199,399,299"
+C003,2022-01-01,24,48,499,"499,299,599,499,399,599,499,299,699,499,399,599,499,699,599,499,399,699,599,499,399,599,499,699"
+C004,2024-01-01,3,5,199,"199,199,199"
+C005,2023-09-01,7,9,359,"359,299,459,299,359,459,359"
+C006,2023-03-01,12,18,499,"499,399,599,499,599,399,499,599,499,399,599,499"
+C007,2024-02-01,2,3,299,"299,299"
+C008,2022-10-01,16,28,459,"459,359,559,459,359,659,459,559,359,459,559,459,359,559,459,659"
+C009,2023-05-01,10,15,329,"329,429,329,429,329,229,329,429,329,429"
+C010,2023-12-01,4,6,299,"299,299,399,299,299,399"
+C011,2022-06-01,20,35,599,"599,499,699,599,499,799,599,699,499,599,799,599,499,699,599,799,599,499,699,599"
+C012,2023-11-01,5,8,429,"429,329,529,429,329"
+C013,2023-04-01,11,19,379,"379,479,379,279,379,479,379,279,379,479,379"
+C014,2023-07-01,9,14,459,"459,559,459,359,459,559,459,359,459"
+C015,2022-12-01,14,22,499,"499,399,599,499,599,399,499,599,499,599,399,499,599,499"
+C016,2024-03-01,1,2,259,"259"
+C017,2023-02-01,13,21,399,"399,499,399,299,399,499,399,299,399,499,399,299,399"
+C018,2022-08-01,18,30,529,"529,629,529,429,529,629,529,429,529,629,529,429,529,629,529,429,529,629"
+C019,2023-10-01,6,10,369,"369,269,469,369,269,469"
+C020,2023-01-01,14,24,429,"429,529,429,329,429,529,429,329,429,529,429,329,429,529"
+C021,2024-01-15,3,4,299,"299,299,299"
+C022,2022-04-01,22,40,559,"559,659,559,459,559,659,559,459,559,659,559,459,559,659,559,459,559,659,559,459,559,659"
+  </script>
+
+  <script type="text/plain" id="default-code">import pandas as pd
+import io
+
+print("=== 数据概览 ===")
+print(f"用户数: {len(df)}")
+show(df.head())
+
+print("\n=== 历史总消费 + 月均消费 ===")
+df['monthly_list'] = df['monthly_amount'].str.strip('"').str.split(',').apply(lambda x: [int(i) for i in x])
+df['total_amount'] = df['monthly_list'].apply(sum)
+df['avg_monthly'] = df['total_amount'] / df['total_months']
+summary = df[['user_id', 'total_months', 'total_amount', 'avg_monthly']].copy()
+summary['avg_monthly'] = summary['avg_monthly'].round(2)
+show(summary)
+
+print("\n=== 描述性统计 ===")
+show(df[['total_months', 'total_purchases', 'avg_order_value']].describe())
+
+print("\n=== 下一步建议 ===")
+print("1. 分析 total_months 分布（成熟 vs 新用户）")
+print("2. 用中位数/分位数预测生命周期月数")
+print("3. LTV = avg_monthly × 预测生命周期月数")
+print("4. 用户分层（高/中/低价值）")
+print("5. 输出 Top 高价值用户名单")
+</script>
+
+  <script type="text/plain" id="answer-code">import pandas as pd
+import io
+
+print("=== 数据概览 ===")
+print(f"用户数: {len(df)}")
+
+# ========= 1. 历史汇总 =========
+df['monthly_list'] = df['monthly_amount'].str.strip('"').str.split(',').apply(lambda x: [int(i) for i in x])
+df['total_amount'] = df['monthly_list'].apply(sum)
+df['avg_monthly'] = df['total_amount'] / df['total_months']
+
+print("\n=== 历史消费汇总 ===")
+summary = df[['user_id', 'total_months', 'total_purchases', 'avg_order_value', 'total_amount', 'avg_monthly']].copy()
+summary['avg_monthly'] = summary['avg_monthly'].round(2)
+show(summary.sort_values('total_amount', ascending=False))
+
+# ========= 2. 用户年限分布 =========
+print("\n=== total_months 分布（成熟 vs 新用户）===")
+months_desc = df['total_months'].describe()
+show(pd.DataFrame(months_desc, columns=['值']))
+
+# ========= 3. 预测生命周期 =========
+median_months = df['total_months'].median()
+p75_months = df['total_months'].quantile(0.75)
+print(f"\n中位数月数: {median_months}")
+print(f"75 分位月数: {p75_months}")
+
+# ========= 4. LTV = 月均 × 预测生命周期 =========
+df['ltv'] = df['avg_monthly'] * p75_months
+
+print("\n=== LTV 预测结果（按 LTV 降序）===")
+ltv_df = df[['user_id', 'signup_date', 'total_months', 'total_amount', 'avg_monthly', 'ltv']].copy()
+ltv_df['avg_monthly'] = ltv_df['avg_monthly'].round(2)
+ltv_df['ltv'] = ltv_df['ltv'].round(2)
+ltv_df = ltv_df.sort_values('ltv', ascending=False).reset_index(drop=True)
+show(ltv_df)
+
+# ========= 5. 用户分层 =========
+def segment(ltv):
+    if ltv >= ltv_df['ltv'].quantile(0.67):
+        return '高价值'
+    elif ltv >= ltv_df['ltv'].quantile(0.33):
+        return '中价值'
+    else:
+        return '低价值'
+
+ltv_df['分层'] = ltv_df['ltv'].apply(segment)
+
+print("\n=== 各分层用户分布 ===")
+seg_dist = ltv_df.groupby('分层').agg(
+    用户数=('user_id', 'count'),
+    平均LTV=('ltv', 'mean'),
+    平均月消费=('avg_monthly', 'mean')
+).reset_index()
+seg_dist['平均LTV'] = seg_dist['平均LTV'].round(2)
+seg_dist['平均月消费'] = seg_dist['平均月消费'].round(2)
+show(seg_dist)
+
+# ========= 6. Top 高价值用户名单 =========
+print("\n=== Top 10 高价值用户名单（需重点服务）===")
+top_users = ltv_df[ltv_df['分层'] == '高价值'].sort_values('ltv', ascending=False).head(10)
+show(top_users)
+
+print("\n=== 业务洞察 ===")
+print(f"- 高价值用户平均 LTV ≈ {seg_dist.loc[seg_dist['分层']=='高价值', '平均LTV'].values[0]} 元")
+print(f"- 高价值用户占总用户 {int(seg_dist.loc[seg_dist['分层']=='高价值', '用户数'].values[0])}/{len(df)} ≈ {int(seg_dist.loc[seg_dist['分层']=='高价值', '用户数'].values[0])/len(df)*100:.0f}%")
+print(f"- 建议对高价值用户推出 VIP 专享优惠券与会员服务")
+</script>
+
+  <script src="../common/storage.js"></script>
+  <script src="../common/pyodide_setup.js"></script>
+  <script src="../common/code_runner.js"></script>
+
+  <script>
+    const PROJECT_ID = '07_customer_ltv';
+    const PROJECT_TITLE = '客户终身价值 LTV 预测';
+
+    (function() {
+      const csvEl = document.getElementById('csv-data');
+      const csvText = csvEl.textContent.trim();
+      const lines = csvText.split('\n').map(l => l.trim()).filter(l => l);
+      const table = document.getElementById('data-table');
+      if (!table || lines.length === 0) return;
+      let html = '<thead><tr>';
+      let header;
+      {
+        let line = lines[0];
+        const cells = []; let buf = ''; let inQuote = false;
+        for (let j = 0; j < line.length; j++) {
+          const ch = line[j];
+          if (ch === '"') { inQuote = !inQuote; continue; }
+          if (ch === ',' && !inQuote) { cells.push(buf); buf = ''; continue; }
+          buf += ch;
+        }
+        cells.push(buf);
+        header = cells;
+        header.forEach(h => { html += '<th>' + h + '</th>'; });
+      }
+      html += '</tr></thead><tbody>';
+      for (let i = 1; i < lines.length; i++) {
+        let line = lines[i];
+        const cells = [];
+        let buf = '';
+        let inQuote = false;
+        for (let j = 0; j < line.length; j++) {
+          const ch = line[j];
+          if (ch === '"') { inQuote = !inQuote; continue; }
+          if (ch === ',' && !inQuote) { cells.push(buf); buf = ''; continue; }
+          buf += ch;
+        }
+        cells.push(buf);
+        html += '<tr>';
+        cells.forEach(c => { html += '<td>' + c + '</td>'; });
+        html += '</tr>';
+      }
+      html += '</tbody>';
+      table.innerHTML = html;
+    })();
+
+    const { createApp } = Vue;
+    let cmEditor = null;
+
+    createApp({
+      data() {
+        return {
+          completed: PandasCampStorage.isCompleted(PROJECT_ID)
+        };
+      },
+      mounted() {
+        this.initEditor();
+      },
+      methods: {
+        switchTab(tab) {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          const btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+          const content = document.getElementById('tab-' + tab);
+          if (btn) btn.classList.add('active');
+          if (content) content.classList.add('active');
+        },
+        initEditor() {
+          const self = this;
+          import('codemirror').then(({ EditorView, basicSetup }) => {
+            Promise.all([
+              import('@codemirror/state'),
+              import('@codemirror/view'),
+              import('@codemirror/lang-python'),
+              import('@codemirror/theme-one-dark')
+            ]).then(([stateMod, viewMod, pyMod, themeMod]) => {
+              const defaultCode = document.getElementById('default-code').textContent;
+              const saved = PandasCampStorage.getCode(PROJECT_ID);
+              const initial = saved || defaultCode;
+
+              cmEditor = new EditorView({
+                doc: initial,
+                extensions: [
+                  basicSetup,
+                  pyMod.python(),
+                  themeMod.oneDark,
+                  stateMod.EditorState.updateListener.of((update) => {
+                    if (update.docChanged) {
+                      PandasCampStorage.saveCode(PROJECT_ID, cmEditor.state.doc.toString());
+                    }
+                  })
+                ],
+                parent: document.getElementById('editor-container')
+              });
+            });
+          });
+        },
+        runCode() {
+          const code = cmEditor.state.doc.toString();
+          const csvText = document.getElementById('csv-data').textContent.trim();
+          const output = document.getElementById('output');
+          PandasCampRunner.run(code, csvText, output, null);
+        },
+        resetCode() {
+          const defaultCode = document.getElementById('default-code').textContent;
+          const currentLen = cmEditor.state.doc.length;
+          cmEditor.dispatch({
+            changes: { from: 0, to: currentLen, insert: defaultCode }
+          });
+          PandasCampStorage.clearCode(PROJECT_ID);
+          document.getElementById('output').innerHTML = '<pre class="text-output muted">代码已重置为默认模板</pre>';
+        },
+        showAnswer() {
+          const answerCode = document.getElementById('answer-code').textContent;
+          const currentLen = cmEditor.state.doc.length;
+          cmEditor.dispatch({
+            changes: { from: 0, to: currentLen, insert: answerCode }
+          });
+          PandasCampStorage.saveCode(PROJECT_ID, answerCode);
+          document.getElementById('output').innerHTML = '<pre class="text-output muted">已加载参考答案，可点击运行查看结果</pre>';
+        },
+        markDone() {
+          PandasCampStorage.markComplete(PROJECT_ID);
+          this.completed = true;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

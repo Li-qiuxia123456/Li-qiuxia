@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>营销活动 ROI 评估 · Pandas 数据分析实战训练营</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../common/style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "codemirror": "https://esm.sh/codemirror@6.0.1",
+      "@codemirror/state": "https://esm.sh/@codemirror/state@6.4.1",
+      "@codemirror/view": "https://esm.sh/@codemirror/view@6.26.3",
+      "@codemirror/lang-python": "https://esm.sh/@codemirror/lang-python@6.0.1",
+      "@codemirror/theme-one-dark": "https://esm.sh/@codemirror/theme-one-dark@6.1.2"
+    }
+  }
+  </script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+      <div class="inner">
+        <a href="../index.html">← 返回首页</a>
+        <span class="nav-progress">{{ completed ? '✓ 已完成' : '○ 未完成' }}</span>
+      </div>
+    </nav>
+
+    <!-- 项目头部 -->
+    <header class="project-header">
+      <div class="meta-row">
+        <span class="project-num">项目 05 / 10</span>
+        <span class="tag tag-中等">中等</span>
+      </div>
+      <h1>营销活动 ROI 评估</h1>
+      <p class="description">结合活动投入成本与实际转化收益，计算各渠道/活动的投资回报率，识别高 ROI 与低效渠道。</p>
+    </header>
+
+    <main class="project-main">
+      <!-- 完成庆祝栏 -->
+      <div v-if="completed" class="celebrate">
+        🎉 恭喜！你已完成本项目。继续挑战下一个吧 →
+      </div>
+
+      <!-- Tabs 切换 -->
+      <div class="tabs" role="tablist">
+        <button class="tab-btn active" data-tab="knowledge" @click="switchTab('knowledge')">📚 知识讲解</button>
+        <button class="tab-btn" data-tab="data" @click="switchTab('data')">📋 数据预览</button>
+        <button class="tab-btn" data-tab="code" @click="switchTab('code')">💻 代码实战</button>
+      </div>
+
+      <!-- Tab 1: 知识讲解 -->
+      <section class="tab-content active" id="tab-knowledge">
+        <div class="panel">
+          <h3><span class="panel-icon">📖</span>核心知识点</h3>
+          <div class="knowledge-grid">
+            <div class="knowledge-card">
+              <div class="kp-title">📐 基础指标定义</div>
+              <div class="kp-desc">ROI = (revenue - spend) / spend；CPC = spend / clicks；CPA = spend / conversions；CTR = clicks / impressions。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">➕ 新增计算列</div>
+              <div class="kp-desc"><span class="inline-code">df['roi'] = (df['revenue'] - df['spend']) / df['spend']</span>，可以一次生成多个衍生列。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">🔎 按渠道聚合</div>
+              <div class="kp-desc"><span class="inline-code">df.groupby('channel')</span> 评估各渠道整体表现，判断渠道质量与预算分配。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">📦 活动维度聚合</div>
+              <div class="kp-desc"><span class="inline-code">df.groupby('campaign')</span> 看哪些活动效果最好，作为后续活动参考。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">⬇ 排序与筛选</div>
+              <div class="kp-desc"><span class="inline-code">df.sort_values('roi', ascending=False)</span>，筛选 ROI 高/低的活动做重点分析。</div>
+            </div>
+            <div class="knowledge-card">
+              <div class="kp-title">💡 业务解读</div>
+              <div class="kp-desc">高 ROI 但规模小的渠道要不要加预算？低 ROI 大渠道要不要砍？必须结合业务目标综合评估。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">💻</span>核心函数速查</h3>
+          <pre class="code-block"><span class="code-comment"># 新增 ROI / CPC / CPA 等列</span>
+df['roi'] = (df['revenue'] - df['spend']) / df['spend']
+df['cpc'] = df['spend'] / df['clicks']
+df['cpa'] = df['spend'] / df['conversions']
+df['profit'] = df['revenue'] - df['spend']
+
+<span class="code-comment"># 按渠道聚合</span>
+by_channel = df.groupby('channel').agg({
+    'spend': 'sum',
+    'revenue': 'sum',
+    'clicks': 'sum',
+    'conversions': 'sum'
+}).reset_index()
+by_channel['roi'] = (by_channel['revenue'] - by_channel['spend']) / by_channel['spend']
+
+<span class="code-comment"># 排序</span>
+df.sort_values('roi', ascending=False).head(5)
+df.sort_values('profit', ascending=False).tail(5)
+
+<span class="code-comment"># 筛选</span>
+high_roi = df[df['roi'] > 1.0]
+low_roi = df[df['roi'] < 0.3]</pre>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">🎯</span>分析目标</h3>
+          <div class="lesson-section">
+            <p>本项目将围绕营销活动 ROI，按以下步骤展开分析：</p>
+            <ul>
+              <li><strong>数据概览</strong>：总投入、总收益、总转化、总点击</li>
+              <li><strong>新增 4 个计算列</strong>：ROI、CPC、CPA、利润（profit）</li>
+              <li><strong>各渠道汇总</strong>：按 channel 聚合，对比渠道 ROI</li>
+              <li><strong>各活动汇总</strong>：按 campaign 聚合，识别最强活动</li>
+              <li><strong>Top/Bottom 活动列表</strong>：按 ROI 排序，高 ROI / 低 ROI 名单</li>
+              <li><strong>投资决策建议</strong>：结合预算与收益，给出增投/止损建议</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 2: 数据预览 -->
+      <section class="tab-content" id="tab-data">
+        <div class="panel">
+          <h3><span class="panel-icon">📋</span>数据集字段说明</h3>
+          <div class="field-list">
+            <div class="field-item"><span class="f-name">campaign</span><span class="f-desc">活动名称</span></div>
+            <div class="field-item"><span class="f-name">channel</span><span class="f-desc">投放渠道（微信 / 抖音 / 小红书 / 淘宝直播 ...）</span></div>
+            <div class="field-item"><span class="f-name">start_date</span><span class="f-desc">活动开始日期</span></div>
+            <div class="field-item"><span class="f-name">end_date</span><span class="f-desc">活动结束日期</span></div>
+            <div class="field-item"><span class="f-name">spend</span><span class="f-desc">投入成本（元）</span></div>
+            <div class="field-item"><span class="f-name">clicks</span><span class="f-desc">点击量</span></div>
+            <div class="field-item"><span class="f-name">conversions</span><span class="f-desc">转化数</span></div>
+            <div class="field-item"><span class="f-name">revenue</span><span class="f-desc">实际收益（元）</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3><span class="panel-icon">🔍</span>数据预览（20 行样例）</h3>
+          <div class="data-scroll">
+            <table class="data-table" id="data-table"></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab 3: 代码实战 -->
+      <section class="tab-content" id="tab-code">
+        <div class="panel">
+          <h3><span class="panel-icon">💻</span>代码实战</h3>
+          <div class="info-box"><code style="background:transparent;padding:0;">df</code> 变量已自动加载，可直接使用。运行代码后，<code style="background:transparent;padding:0;">print</code> 输出将显示在下方控制台，<code style="background:transparent;padding:0;">show(df)</code> 可以将 DataFrame 渲染为表格。</div>
+
+          <div id="editor-container" class="cm-container"></div>
+
+          <div class="btn-row">
+            <button class="btn" @click="runCode">▶ 运行代码</button>
+            <button class="btn btn-secondary" @click="resetCode">重置代码</button>
+            <button class="btn btn-secondary" @click="showAnswer">查看参考答案</button>
+          </div>
+
+          <div id="output" class="output-console" style="margin-top:18px;">点击"运行代码"查看结果...</div>
+        </div>
+
+        <div class="panel" style="text-align:center;">
+          <button class="btn btn-success" style="font-size:16px; padding:14px 30px;" @click="markDone">🎖️ 标记项目完成</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- CSV 数据 -->
+  <script type="text/csv" id="csv-data">
+campaign,channel,start_date,end_date,spend,clicks,conversions,revenue
+春季促销,微信,2024-03-01,2024-03-10,8000,12000,300,24000
+春季促销,抖音,2024-03-01,2024-03-10,15000,25000,500,45000
+春季促销,小红书,2024-03-01,2024-03-10,5000,8000,180,18000
+618 大促,淘宝直播,2024-06-01,2024-06-20,30000,60000,1500,130000
+618 大促,微信,2024-06-01,2024-06-20,12000,20000,600,55000
+618 大促,抖音,2024-06-01,2024-06-20,25000,45000,1200,110000
+618 大促,小红书,2024-06-01,2024-06-20,8000,15000,400,38000
+端午活动,微信,2024-06-08,2024-06-12,3000,5000,120,11000
+端午活动,抖音,2024-06-08,2024-06-12,6000,10000,250,22000
+暑期推广,小红书,2024-07-01,2024-07-31,10000,18000,500,48000
+暑期推广,微信,2024-07-01,2024-07-31,9000,14000,420,40000
+暑期推广,抖音,2024-07-01,2024-07-31,18000,32000,850,78000
+会员日,淘宝直播,2024-08-10,2024-08-12,5000,8000,200,19000
+会员日,微信,2024-08-10,2024-08-12,3500,6000,150,14000
+会员日,抖音,2024-08-10,2024-08-12,7000,12000,300,26000
+双 11 大促,淘宝直播,2024-11-01,2024-11-11,50000,90000,2500,220000
+双 11 大促,微信,2024-11-01,2024-11-11,20000,35000,900,80000
+双 11 大促,抖音,2024-11-01,2024-11-11,40000,75000,2000,180000
+双 11 大促,小红书,2024-11-01,2024-11-11,15000,25000,700,65000
+年终总结,抖音,2024-12-20,2024-12-25,10000,18000,450,42000
+  </script>
+
+  <!-- 默认代码 -->
+  <script type="text/plain" id="default-code">import pandas as pd
+
+print("=== 数据概览 ===")
+print(f"总活动行数: {len(df)}")
+print(f"活动数: {df['campaign'].nunique()}")
+print(f"渠道数: {df['channel'].nunique()}")
+show(df.head())
+
+print("\n=== 基本统计 ===")
+print(f"总投入: {df['spend'].sum():,.0f} 元")
+print(f"总收益: {df['revenue'].sum():,.0f} 元")
+print(f"总点击: {df['clicks'].sum():,}")
+print(f"总转化: {df['conversions'].sum():,}")
+
+print("\n=== 新增计算列（示范）===")
+df['roi'] = (df['revenue'] - df['spend']) / df['spend']
+df['profit'] = df['revenue'] - df['spend']
+show(df[['campaign', 'channel', 'spend', 'revenue', 'profit', 'roi']].head())
+
+print("\n=== 下一步建议 ===")
+print("1. 再新增 CPC（单次点击成本）、CPA（单次转化成本）")
+print("2. groupby('channel') 对比各渠道表现")
+print("3. groupby('campaign') 看哪些活动效果最好")
+print("4. 按 ROI / profit 排序，给出 Top / Bottom 列表")
+print("5. 结合预算与表现给出决策建议")
+</script>
+
+  <!-- 参考答案代码 -->
+  <script type="text/plain" id="answer-code">import pandas as pd
+
+# ========= 1. 基本统计 =========
+print("=== 1. 全量活动汇总 ===")
+total_spend = df['spend'].sum()
+total_revenue = df['revenue'].sum()
+total_clicks = df['clicks'].sum()
+total_conversions = df['conversions'].sum()
+total_profit = total_revenue - total_spend
+overall_roi = total_profit / total_spend
+
+print(f"活动条目数: {len(df)}")
+print(f"活动数: {df['campaign'].nunique()}")
+print(f"渠道数: {df['channel'].nunique()}")
+print(f"总投入: {total_spend:,.0f} 元")
+print(f"总收益: {total_revenue:,.0f} 元")
+print(f"总利润: {total_profit:,.0f} 元")
+print(f"整体 ROI: {overall_roi:.2%}")
+print(f"总点击: {total_clicks:,}")
+print(f"总转化: {total_conversions:,}")
+
+# ========= 2. 新增 4 个计算列 =========
+print("\n=== 2. 新增 ROI / CPC / CPA / profit 列 ===")
+df['roi'] = (df['revenue'] - df['spend']) / df['spend']
+df['cpc'] = df['spend'] / df['clicks']
+df['cpa'] = df['spend'] / df['conversions']
+df['profit'] = df['revenue'] - df['spend']
+
+# 展示前 10 行
+show_cols = ['campaign', 'channel', 'spend', 'revenue',
+             'profit', 'roi', 'cpc', 'cpa']
+preview = df[show_cols].copy()
+preview['roi'] = (preview['roi'] * 100).round(1).astype(str) + '%'
+preview['cpc'] = preview['cpc'].round(2)
+preview['cpa'] = preview['cpa'].round(2)
+preview['spend'] = preview['spend'].apply(lambda x: f"{x:,}")
+preview['revenue'] = preview['revenue'].apply(lambda x: f"{x:,}")
+preview['profit'] = preview['profit'].apply(lambda x: f"{x:,}")
+show(preview)
+
+# ========= 3. 按渠道汇总 =========
+print("\n=== 3. 按渠道汇总表现 ===")
+by_channel = df.groupby('channel').agg({
+    'spend': 'sum',
+    'revenue': 'sum',
+    'clicks': 'sum',
+    'conversions': 'sum',
+    'profit': 'sum'
+}).reset_index()
+by_channel['roi'] = (by_channel['revenue'] - by_channel['spend']) / by_channel['spend']
+by_channel['cpc'] = by_channel['spend'] / by_channel['clicks']
+by_channel['cpa'] = by_channel['spend'] / by_channel['conversions']
+by_channel = by_channel.sort_values('roi', ascending=False).reset_index(drop=True)
+
+show_channel = by_channel.copy()
+for col in ['spend', 'revenue', 'profit']:
+    show_channel[col] = show_channel[col].apply(lambda x: f"{int(x):,}")
+show_channel['clicks'] = show_channel['clicks'].apply(lambda x: f"{int(x):,}")
+show_channel['conversions'] = show_channel['conversions'].apply(lambda x: f"{int(x):,}")
+show_channel['roi'] = (show_channel['roi'] * 100).round(1).astype(str) + '%'
+show_channel['cpc'] = show_channel['cpc'].round(2)
+show_channel['cpa'] = show_channel['cpa'].round(2)
+show(show_channel)
+
+# ========= 4. 按活动汇总 =========
+print("\n=== 4. 按活动汇总表现 ===")
+by_campaign = df.groupby('campaign').agg({
+    'spend': 'sum',
+    'revenue': 'sum',
+    'clicks': 'sum',
+    'conversions': 'sum',
+    'profit': 'sum'
+}).reset_index()
+by_campaign['roi'] = (by_campaign['revenue'] - by_campaign['spend']) / by_campaign['spend']
+by_campaign = by_campaign.sort_values('profit', ascending=False).reset_index(drop=True)
+
+show_campaign = by_campaign.copy()
+for col in ['spend', 'revenue', 'profit']:
+    show_campaign[col] = show_campaign[col].apply(lambda x: f"{int(x):,}")
+show_campaign['clicks'] = show_campaign['clicks'].apply(lambda x: f"{int(x):,}")
+show_campaign['conversions'] = show_campaign['conversions'].apply(lambda x: f"{int(x):,}")
+show_campaign['roi'] = (show_campaign['roi'] * 100).round(1).astype(str) + '%'
+show(show_campaign)
+
+# ========= 5. Top 3 & Bottom 3 =========
+print("\n=== 5.1 ROI Top 3 活动条目 ===")
+top3 = df.sort_values('roi', ascending=False).head(3)[show_cols].copy()
+top3['roi'] = (top3['roi'] * 100).round(1).astype(str) + '%'
+top3['cpc'] = top3['cpc'].round(2)
+top3['cpa'] = top3['cpa'].round(2)
+for col in ['spend', 'revenue', 'profit']:
+    top3[col] = top3[col].apply(lambda x: f"{int(x):,}")
+show(top3)
+
+print("\n=== 5.2 ROI Bottom 3 活动条目 ===")
+bottom3 = df.sort_values('roi', ascending=True).head(3)[show_cols].copy()
+bottom3['roi'] = (bottom3['roi'] * 100).round(1).astype(str) + '%'
+bottom3['cpc'] = bottom3['cpc'].round(2)
+bottom3['cpa'] = bottom3['cpa'].round(2)
+for col in ['spend', 'revenue', 'profit']:
+    bottom3[col] = bottom3[col].apply(lambda x: f"{int(x):,}")
+show(bottom3)
+
+# ========= 6. 投资决策建议 =========
+print("\n=== 6. 投资决策建议 ===")
+best_channel = by_channel.iloc[0]
+worst_channel = by_channel.iloc[-1]
+best_campaign = by_campaign.iloc[0]
+worst_campaign = by_campaign.iloc[-1]
+
+print(f"✅ 最高 ROI 渠道: {best_channel['channel']} - ROI {best_channel['roi']:.2%}，可考虑加大预算")
+print(f"⚠️  最低 ROI 渠道: {worst_channel['channel']} - ROI {worst_channel['roi']:.2%}，需评估投放策略")
+print(f"🎯 最强活动: {best_campaign['campaign']} - 利润 {best_campaign['profit']:,.0f} 元，ROI {best_campaign['roi']:.2%}")
+print(f"🔻 最弱活动: {worst_campaign['campaign']} - 利润 {worst_campaign['profit']:,.0f} 元，ROI {worst_campaign['roi']:.2%}")
+print(f"💡 综合建议:")
+print(f"   - 大促类活动(双11/618)高投入高回报，可保持当前策略")
+print(f"   - ROI 低于 100% 的渠道/活动可尝试优化素材/定向或缩减预算")
+print(f"   - 淘宝直播渠道利润贡献最大，是品牌大促的核心阵地")
+</script>
+
+  <script src="../common/storage.js"></script>
+  <script src="../common/pyodide_setup.js"></script>
+  <script src="../common/code_runner.js"></script>
+
+  <script>
+    const PROJECT_ID = '05_marketing_roi';
+    const PROJECT_TITLE = '营销活动 ROI 评估';
+
+    // --- 解析 CSV 并生成数据预览表格 ---
+    (function() {
+      const csvEl = document.getElementById('csv-data');
+      const csvText = csvEl.textContent.trim();
+      const lines = csvText.split('\n').map(l => l.trim()).filter(l => l);
+      const table = document.getElementById('data-table');
+      if (!table || lines.length === 0) return;
+      const header = lines[0].split(',');
+      let html = '<thead><tr>';
+      header.forEach(h => { html += '<th>' + h + '</th>'; });
+      html += '</tr></thead><tbody>';
+      for (let i = 1; i < lines.length; i++) {
+        const cells = lines[i].split(',');
+        html += '<tr>';
+        cells.forEach(c => { html += '<td>' + c + '</td>'; });
+        html += '</tr>';
+      }
+      html += '</tbody>';
+      table.innerHTML = html;
+    })();
+
+    // --- Vue 应用 ---
+    const { createApp } = Vue;
+    let cmEditor = null;
+
+    createApp({
+      data() {
+        return {
+          completed: PandasCampStorage.isCompleted(PROJECT_ID)
+        };
+      },
+      mounted() {
+        this.initEditor();
+      },
+      methods: {
+        switchTab(tab) {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          const btn = document.querySelector('.tab-btn[data-tab="' + tab + '"]');
+          const content = document.getElementById('tab-' + tab);
+          if (btn) btn.classList.add('active');
+          if (content) content.classList.add('active');
+        },
+        initEditor() {
+          const self = this;
+          import('codemirror').then(({ EditorView, basicSetup }) => {
+            Promise.all([
+              import('@codemirror/state'),
+              import('@codemirror/view'),
+              import('@codemirror/lang-python'),
+              import('@codemirror/theme-one-dark')
+            ]).then(([stateMod, viewMod, pyMod, themeMod]) => {
+              const defaultCode = document.getElementById('default-code').textContent;
+              const saved = PandasCampStorage.getCode(PROJECT_ID);
+              const initial = saved || defaultCode;
+
+              cmEditor = new EditorView({
+                doc: initial,
+                extensions: [
+                  basicSetup,
+                  pyMod.python(),
+                  themeMod.oneDark,
+                  stateMod.EditorState.updateListener.of((update) => {
+                    if (update.docChanged) {
+                      PandasCampStorage.saveCode(PROJECT_ID, cmEditor.state.doc.toString());
+                    }
+                  })
+                ],
+                parent: document.getElementById('editor-container')
+              });
+            });
+          });
+        },
+        runCode() {
+          const code = cmEditor.state.doc.toString();
+          const csvText = document.getElementById('csv-data').textContent.trim();
+          const output = document.getElementById('output');
+          PandasCampRunner.run(code, csvText, output, null);
+        },
+        resetCode() {
+          const defaultCode = document.getElementById('default-code').textContent;
+          const currentLen = cmEditor.state.doc.length;
+          cmEditor.dispatch({
+            changes: { from: 0, to: currentLen, insert: defaultCode }
+          });
+          PandasCampStorage.clearCode(PROJECT_ID);
+          document.getElementById('output').innerHTML = '<pre class="text-output muted">代码已重置为默认模板</pre>';
+        },
+        showAnswer() {
+          const answerCode = document.getElementById('answer-code').textContent;
+          const currentLen = cmEditor.state.doc.length;
+          cmEditor.dispatch({
+            changes: { from: 0, to: currentLen, insert: answerCode }
+          });
+          PandasCampStorage.saveCode(PROJECT_ID, answerCode);
+          document.getElementById('output').innerHTML = '<pre class="text-output muted">已加载参考答案，可点击运行查看结果</pre>';
+        },
+        markDone() {
+          PandasCampStorage.markComplete(PROJECT_ID);
+          this.completed = true;
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
