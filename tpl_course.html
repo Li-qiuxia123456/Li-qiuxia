@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>__TITLE__ | DataLearn</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.3.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.3.0/dist/skulpt-stdlib.js"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        brand: { 50:"#EEF4FF", 100:"#DBE8FF", 200:"#B8D1FF", 500:"#165DFF", 600:"#0E4BDB", 700:"#0A39A8" },
+        success: { 50:"#F0FDF4", 100:"#DCFCE7", 500:"#10B981", 600:"#059669" },
+        danger: { 50:"#FEF2F2", 100:"#FEE2E2", 500:"#EF4444", 600:"#DC2626" },
+        warn: { 50:"#FFFBEB", 500:"#F59E0B" },
+      },
+      boxShadow: {
+        'soft': '0 4px 20px rgba(22,93,255,0.08)',
+        'float': '0 12px 40px rgba(22,93,255,0.15)',
+      }
+    }
+  }
+}};
+</script>
+<style>
+/* ============ 全局排版 ============ */
+body { font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",sans-serif; background:#F8FAFC; }
+h1, h2, h3 { letter-spacing: -0.01em; }
+
+/* ============ 代码编辑器 ============ */
+.code-editor {
+  font-family:"JetBrains Mono","Monaco","Consolas",monospace;
+  font-size: 13.5px;
+  line-height: 1.7;
+  background:#0F172A;
+  color:#E2E8F0;
+  border: 1px solid #1E293B;
+  border-radius: 12px;
+  padding: 1.1rem 1.3rem;
+  width: 100%;
+  min-height: 320px;
+  resize: vertical;
+  white-space: pre;
+  outline: none;
+  tab-size: 4;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.3);
+}
+.code-editor:focus { border-color:#165DFF; box-shadow: inset 0 2px 8px rgba(0,0,0,0.3), 0 0 0 3px rgba(22,93,255,0.15); }
+
+/* ============ 输出区 ============ */
+.output-box {
+  background:#020617;
+  color:#E2E8F0;
+  font-family:"JetBrains Mono","Monaco",monospace;
+  font-size: 13px;
+  line-height: 1.75;
+  padding: 1.1rem 1.3rem;
+  border-radius: 12px;
+  min-height: 320px;
+  white-space: pre-wrap;
+  border: 1px solid #1E293B;
+  max-height: 520px;
+  overflow: auto;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.35);
+}
+.out-err { color:#FCA5A5; font-weight:600; display:block; padding-top:8px; }
+.out-info { color:#93C5FD; }
+.out-ok { color:#86EFAC; font-weight: 600; }
+
+/* ============ 运行中 Loading ============ */
+.runner-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(16,185,129,0.1);
+  color:#10B981;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight:600;
+}
+.runner-loader .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background:#10B981;
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* ============ 成功横幅 ============ */
+.success-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  color: #fff; font-weight: 600; font-size: 14px;
+  padding: 10px 16px; border-radius: 10px; margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(16,185,129,0.25);
+}
+.error-banner {
+  display: flex; align-items: center; gap: 10px;
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  color: #fff; font-weight: 600; font-size: 14px;
+  padding: 10px 16px; border-radius: 10px; margin-bottom: 12px;
+  box-shadow: 0 4px 14px rgba(239,68,68,0.25);
+}
+
+/* ============ 折叠面板 ============ */
+details summary { cursor: pointer; list-style: none; outline: none; }
+details summary::-webkit-details-marker { display: none; }
+details[open] .caret { transform: rotate(90deg); }
+details > div.k-body { animation: slideDown .25s ease; }
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); max-height: 0; }
+  to { opacity: 1; transform: translateY(0); max-height: 2000px; }
+}
+.caret { transition: transform .2s ease; display: inline-block; font-size: 12px; color:#165DFF; }
+
+/* ============ 选择题选项 ============ */
+.q-choice {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 16px; border: 2px solid #E5E7EB;
+  border-radius: 12px; background: #fff;
+  cursor: pointer; transition: all .15s ease;
+  user-select: none;
+}
+.q-choice:hover:not(.q-disabled) {
+  border-color: #165DFF; background: #EEF4FF;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22,93,255,0.1);
+}
+.q-choice.q-selected { border-color:#165DFF; background:#EEF4FF; }
+.q-choice.q-correct {
+  border-color: #10B981; background: #F0FDF4;
+}
+.q-choice.q-wrong {
+  border-color: #EF4444; background: #FEF2F2;
+}
+.q-choice.q-disabled { cursor: default; }
+.q-letter {
+  flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px;
+  background: #F3F4F6; color: #374151; font-weight: 700; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+}
+.q-choice.q-selected .q-letter { background:#165DFF; color:#fff; }
+.q-choice.q-correct .q-letter { background:#10B981; color:#fff; }
+.q-choice.q-wrong .q-letter { background:#EF4444; color:#fff; }
+.q-text { flex: 1; font-size: 14px; color:#374151; line-height: 1.75; padding-top: 2px; }
+.q-status {
+  flex-shrink: 0; font-size: 12px; font-weight: 600;
+  padding: 2px 8px; border-radius: 6px;
+}
+.q-status.ok { background:#10B981; color:#fff; }
+.q-status.bad { background:#EF4444; color:#fff; }
+
+/* ============ 按钮 ============ */
+.btn-base { transition: all .15s ease; }
+.btn-base:active { transform: scale(.97); }
+
+/* ============ 动画效果 ============ */
+.fade-in { animation: fadeIn .4s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:translateY(0);} }
+
+/* ============ 滚动条美化 ============ */
+.code-editor::-webkit-scrollbar, .output-box::-webkit-scrollbar { width: 8px; height: 8px; }
+.code-editor::-webkit-scrollbar-track, .output-box::-webkit-scrollbar-track { background: #0F172A; border-radius: 4px; }
+.code-editor::-webkit-scrollbar-thumb, .output-box::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+.code-editor::-webkit-scrollbar-thumb:hover, .output-box::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+/* ============ 课程卡 Hero ============ */
+.hero-card {
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #165DFF 0%, #0E4BDB 60%, #0A39A8 100%);
+  border-radius: 24px; padding: 40px 48px;
+  color: #fff; box-shadow: 0 20px 60px rgba(22,93,255,0.25);
+}
+.hero-card::before {
+  content: ''; position: absolute; top: -80px; right: -80px;
+  width: 280px; height: 280px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.hero-card::after {
+  content: ''; position: absolute; bottom: -120px; left: -120px;
+  width: 320px; height: 320px; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+
+/* 标签 */
+.chip {
+  display: inline-block; padding: 5px 12px; border-radius: 999px;
+  font-size: 12px; font-weight: 500;
+}
+.chip-dark { background: rgba(255,255,255,0.15); color: #fff; }
+.chip-green { background:#F0FDF4; color:#059669; border: 1px solid #BBF7D0; }
+.chip-blue { background:#EEF4FF; color:#165DFF; border: 1px solid #DBE8FF; }
+.chip-purple { background:#F5F3FF; color:#7C3AED; border: 1px solid #E9D5FF; }
+
+/* 模块卡片 */
+.module-card {
+  background: #fff; border-radius: 20px; padding: 32px;
+  border: 1px solid #E5E7EB; box-shadow: 0 2px 8px rgba(17,24,39,0.04);
+  transition: all .2s ease;
+}
+.module-card:hover { border-color: #DBE8FF; box-shadow: 0 8px 24px rgba(22,93,255,0.08); }
+
+/* 知识卡片 */
+.k-panel {
+  border: 1px solid #E5E7EB; border-radius: 14px;
+  background: #fff; overflow: hidden;
+}
+.k-panel summary {
+  padding: 16px 20px; font-weight: 600; font-size: 15px;
+  color: #1F2937; background: #F9FAFB;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.k-panel summary:hover { background:#F3F4F6; }
+.k-panel .k-body { padding: 20px; background: #fff; }
+.k-panel .k-body p { font-size: 14px; color: #475569; line-height: 1.85; margin-bottom: 10px; }
+.k-panel .k-body ul { padding-left: 20px; margin: 8px 0; }
+.k-panel .k-body li { font-size: 14px; color: #475569; line-height: 1.85; list-style: disc; }
+.k-panel .k-body .k-highlight {
+  background: #EEF4FF; border-left: 3px solid #165DFF;
+  padding: 10px 14px; border-radius: 4px; color: #1E3A8A;
+  font-size: 13px; margin: 8px 0;
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2 font-bold text-brand-500 text-base">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-500 text-white text-sm font-bold">D</span>
+      <span>DataLearn</span>
+    </a>
+    <div class="hidden md:flex items-center gap-7 text-sm text-gray-600">
+      <a href="index.html#courses" class="hover:text-brand-500 transition">全部课程</a>
+      <a href="index.html#path" class="hover:text-brand-500 transition">学习路径</a>
+      <a href="index.html#stack" class="hover:text-brand-500 transition">技术栈</a>
+    </div>
+    <a href="index.html" class="text-sm bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg font-semibold inline-flex items-center gap-1">← 返回首页</a>
+  </div>
+</nav>
+
+<main class="max-w-6xl mx-auto px-4 md:px-6 mt-8 space-y-6 pb-16">
+
+  <!-- Hero 课程介绍 -->
+  <div class="hero-card">
+    <div class="relative z-10">
+      <div class="flex flex-wrap items-center gap-2 mb-5">
+        <span class="chip chip-dark">课程 __IDX__ / 10</span>
+        <span class="__LEVEL_CLASS_BANNER__ chip chip-dark">__LEVEL_TEXT__</span>
+        <span class="chip chip-dark">⏱ 约 __HOURS__</span>
+        <span class="chip chip-dark">★ __RATING__</span>
+      </div>
+      <h1 class="text-3xl md:text-4xl font-extrabold mb-4 leading-tight">__TITLE__</h1>
+      <p class="text-white/85 text-base md:text-lg leading-relaxed max-w-3xl">__SUBTITLE__</p>
+      <div class="grid md:grid-cols-3 gap-4 mt-8">
+        <div class="bg-white/10 backdrop-blur rounded-xl p-5">
+          <div class="text-xs text-white/75 mb-2 font-semibold tracking-wider">🎯 学习目标</div>
+          <div class="text-sm leading-7 whitespace-pre-line text-white/95">__GOALS__</div>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-xl p-5">
+          <div class="text-xs text-white/75 mb-2 font-semibold tracking-wider">👥 适合人群</div>
+          <div class="text-sm leading-7 text-white/95">__AUDIENCE__</div>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-xl p-5">
+          <div class="text-xs text-white/75 mb-2 font-semibold tracking-wider">📖 前置知识</div>
+          <div class="text-sm leading-7 text-white/95">__PREREQ__</div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-6">__TAGS_HTML__</div>
+    </div>
+  </div>
+
+  <!-- 核心知识点 -->
+  <section class="module-card">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center text-lg">📖</div>
+      <div>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900">课程核心知识点</h2>
+        <p class="text-sm text-gray-500 mt-1">点击展开每个知识点，了解详细原理与实际应用</p>
+      </div>
+    </div>
+    <div class="space-y-3">
+__KNOWLEDGE_HTML__
+    </div>
+  </section>
+
+  <!-- 随堂练习 -->
+  <section class="module-card">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg">📝</div>
+      <div>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900">随堂练习 · 选择题</h2>
+        <p class="text-sm text-gray-500 mt-1">点击选项作答 → 提交查看正确答案 → 学习解析</p>
+      </div>
+    </div>
+    <div class="space-y-5" id="quiz-area">
+__QUIZ_HTML__
+    </div>
+  </section>
+
+  <!-- 在线代码实践 -->
+  <section class="module-card">
+    <div class="flex items-start justify-between flex-wrap gap-4 mb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-green-500 text-white flex items-center justify-center text-lg">💻</div>
+        <div>
+          <h2 class="text-xl md:text-2xl font-bold text-gray-900">在线代码实践</h2>
+          <p class="text-sm text-gray-500 mt-1">浏览器内直接运行 Python，无需安装环境，即时查看输出</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button id="btn-run" class="btn-base bg-green-500 hover:bg-green-600 text-white px-5 py-2.5 rounded-xl font-semibold shadow-sm text-sm inline-flex items-center gap-2">▶ 运行代码</button>
+        <button id="btn-reset" class="btn-base bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2.5 rounded-xl font-semibold text-sm inline-flex items-center gap-2">↺ 重置示例</button>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <div class="text-xs text-gray-400 mb-2 font-semibold">📄 Python 代码</div>
+        <textarea id="code-editor" class="code-editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off">__CODE_TEXT__</textarea>
+      </div>
+      <div>
+        <div class="text-xs text-gray-400 mb-2 font-semibold">📊 运行结果</div>
+        <div id="output" class="output-box"><span class="out-info">👋 你好！请点击左侧的绿色「▶ 运行代码」按钮，查看执行结果。</span></div>
+      </div>
+    </div>
+    <div class="flex items-start gap-2 text-xs text-gray-500 mt-3">
+      <span>💡 提示：</span>
+      <span>本平台基于 Skulpt 解释器，支持纯 Python 语法（print / 列表 / 字典 / 循环 / 条件判断 / 函数 等）。如果代码报错，会以红色字体在下方输出区显示错误信息。</span>
+    </div>
+  </section>
+
+  <!-- 课程小结 -->
+  <section class="module-card">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-10 h-10 rounded-xl bg-purple-500 text-white flex items-center justify-center text-lg">🏁</div>
+      <div>
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900">课程小结</h2>
+        <p class="text-sm text-gray-500 mt-1">关键要点一览，帮助你巩固学习成果</p>
+      </div>
+    </div>
+    <div class="bg-gradient-to-br from-purple-50 to-white border border-purple-100 rounded-2xl p-6">
+      <ul class="space-y-3">
+__SUMMARY_BULLETS__
+      </ul>
+    </div>
+  </section>
+
+  <!-- 导航链接 -->
+  <div class="flex flex-wrap justify-center gap-3 pt-4">
+    <a href="index.html#courses" class="btn-base bg-white border border-gray-200 hover:border-brand-500 hover:text-brand-500 text-gray-700 px-5 py-2.5 rounded-xl font-semibold text-sm">← 返回课程列表</a>
+    __PREV_LINK__
+    __NEXT_LINK__
+  </div>
+</main>
+
+<!-- JavaScript: 代码运行 + 选择题交互 -->
+<script>
+(function() {
+  // ===== 代码编辑器状态 =====
+  var editor = document.getElementById('code-editor');
+  var editorDefault = editor.value;
+  var output = document.getElementById('output');
+  var btnRun = document.getElementById('btn-run');
+  var btnReset = document.getElementById('btn-reset');
+
+  // ===== Skulpt 内置文件读取 =====
+  function builtinRead(x) {
+    if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+      throw "File not found: '" + x + "'";
+    }
+    return Sk.builtinFiles["files"][x];
+  }
+
+  // ===== 运行代码 =====
+  function runCode() {
+    var code = editor.value;
+    btnRun.disabled = true;
+    btnRun.innerHTML = '<span class="runner-loader"><span class="dot"></span>运行中...</span>';
+    output.innerHTML = '';
+
+    try {
+      Sk.configure({
+        output: function(t) {
+          // Skulpt 可能传入 JS 对象；转成字符串
+          output.innerHTML += String(t);
+        },
+        read: builtinRead,
+        __future__: Sk.python3
+      });
+
+      var promise = Sk.misceval.asyncToPromise(function() {
+        return Sk.importMainWithBody("<stdin>", false, code, true);
+      });
+
+      promise.then(
+        function(mod) {
+          btnRun.disabled = false;
+          btnRun.innerHTML = '▶ 运行代码';
+          // 拼接成功提示
+          var successHtml = '<div class="success-banner fade-in"><span>✅</span><span>运行成功！代码已成功执行。</span></div>';
+          if (!output.innerHTML.trim()) {
+            output.innerHTML = successHtml + '<span class="out-info">（代码无输出内容。你可以添加 print(...) 来查看输出。）</span>';
+          } else {
+            output.innerHTML = successHtml + output.innerHTML;
+          }
+        },
+        function(err) {
+          btnRun.disabled = false;
+          btnRun.innerHTML = '▶ 运行代码';
+          var msg = err.toString ? err.toString() : String(err);
+          output.innerHTML = '<div class="error-banner fade-in"><span>❌</span><span>运行失败：代码存在错误，请查看下方详情。</span></div>' +
+            '<span class="out-err">错误信息：' + msg + '</span>';
+        }
+      );
+    } catch (ex) {
+      btnRun.disabled = false;
+      btnRun.innerHTML = '▶ 运行代码';
+      output.innerHTML = '<div class="error-banner fade-in"><span>❌</span><span>运行失败：捕获异常。</span></div>' +
+        '<span class="out-err">异常信息：' + ex.toString() + '</span>';
+    }
+  }
+
+  btnRun.addEventListener('click', runCode);
+
+  // ===== 重置代码 =====
+  btnReset.addEventListener('click', function() {
+    editor.value = editorDefault;
+    output.innerHTML = '<span class="out-info">↺ 已重置示例代码。点击「运行代码」查看输出。</span>';
+  });
+
+  // ===== 选择题交互 =====
+  var letters = ['A','B','C','D','E','F'];
+  document.querySelectorAll('.quiz-block').forEach(function(block, blockIdx) {
+    var correct = parseInt(block.getAttribute('data-correct'), 10);
+    var choices = block.querySelectorAll('.q-choice');
+    var submitBtn = block.querySelector('.q-submit');
+    var explain = block.querySelector('.q-explain');
+    var statusText = block.querySelector('.q-status-text');
+    var selected = -1;
+
+    choices.forEach(function(c, idx) {
+      c.addEventListener('click', function() {
+        // 已提交则不响应
+        if (submitBtn.classList.contains('q-submitted')) return;
+        choices.forEach(function(x) { x.classList.remove('q-selected'); });
+        c.classList.add('q-selected');
+        selected = idx;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50','cursor-not-allowed');
+        if (statusText) {
+          statusText.innerHTML = '✓ 已选择 <strong>' + letters[idx] + '</strong>，可以提交';
+          statusText.className = 'q-status-text text-xs text-brand-500 font-semibold';
+        }
+      });
+    });
+
+    submitBtn.addEventListener('click', function() {
+      if (selected === -1) return;
+      choices.forEach(function(c, idx) {
+        c.classList.remove('q-selected');
+        c.classList.add('q-disabled');
+        if (idx === correct) {
+          c.classList.add('q-correct');
+          var statusOk = document.createElement('span');
+          statusOk.className = 'q-status ok';
+          statusOk.textContent = '正确 ✓';
+          c.appendChild(statusOk);
+        }
+        if (idx === selected && selected !== correct) {
+          c.classList.add('q-wrong');
+          var statusBad = document.createElement('span');
+          statusBad.className = 'q-status bad';
+          statusBad.textContent = '错误 ✗';
+          c.appendChild(statusBad);
+        }
+      });
+      // 展开解析
+      if (explain) {
+        explain.style.display = 'block';
+        // 添加动画
+        explain.classList.add('fade-in');
+      }
+      // 更新提交按钮
+      submitBtn.disabled = true;
+      submitBtn.classList.add('q-submitted','opacity-80');
+      if (selected === correct) {
+        submitBtn.innerHTML = '✓ 回答正确，太棒了！';
+        submitBtn.className = 'q-submit btn-base bg-green-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm inline-flex items-center gap-2 q-submitted opacity-80';
+      } else {
+        submitBtn.innerHTML = '✗ 回答错误，再看看解析';
+        submitBtn.className = 'q-submit btn-base bg-red-500 text-white px-5 py-2.5 rounded-xl font-semibold text-sm inline-flex items-center gap-2 q-submitted opacity-80';
+      }
+      if (statusText) statusText.innerHTML = '';
+    });
+  });
+})();
+</script>
+
+<footer class="border-t border-gray-200 bg-white mt-10">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 py-6 text-sm text-gray-500 text-center">
+    © 2025 DataLearn · 商务数据分析与应用 Python 学习平台 · Powered by Skulpt + Tailwind CSS
+  </div>
+</footer>
+
+</body>
+</html>

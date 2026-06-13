@@ -1,0 +1,105 @@
+# ============================================================
+# 课程 4：电商商品关联推荐
+# 数据：18 个购物篮（商品列表）
+# 分析：商品对共现频次、排序、推荐建议
+# ============================================================
+
+print("==== 电商商品关联推荐分析 ====")
+print()
+
+# ----- 输入数据 -----
+print(">>> 输入数据：18 个购物篮")
+baskets = [
+    ["牛奶", "面包", "鸡蛋"],
+    ["牛奶", "面包", "鸡蛋", "黄油"],
+    ["啤酒", "薯片", "花生"],
+    ["牛奶", "鸡蛋", "黄油", "酸奶"],
+    ["面包", "鸡蛋", "果酱"],
+    ["啤酒", "薯片"],
+    ["牛奶", "面包", "酸奶"],
+    ["洗发水", "沐浴露", "牙膏"],
+    ["牛奶", "鸡蛋"],
+    ["面包", "黄油", "果酱"],
+    ["啤酒", "花生", "薯片", "可乐"],
+    ["洗发水", "牙膏"],
+    ["牛奶", "酸奶", "黄油"],
+    ["面包", "鸡蛋", "牛奶"],
+    ["沐浴露", "洗发水", "牙膏"],
+    ["薯片", "可乐", "花生"],
+    ["鸡蛋", "牛奶", "面包", "黄油"],
+    ["牙膏", "牙刷", "洗发水"],
+]
+
+for i, b in enumerate(baskets):
+    print("篮", i + 1, ":", b)
+print()
+
+# ----- 商品对共现 -----
+print(">>> 步骤 1：计算商品对共现次数")
+pair_counts = {}
+for b in baskets:
+    items = sorted(b)
+    for i in range(len(items)):
+        for j in range(i + 1, len(items)):
+            pair = (items[i], items[j])
+            if pair in pair_counts:
+                pair_counts[pair] += 1
+            else:
+                pair_counts[pair] = 1
+
+print("商品对 | 共现次数")
+sorted_pairs = sorted(pair_counts.items(), key=lambda x: x[1], reverse=True)
+for pair, cnt in sorted_pairs[:15]:
+    print(pair[0], "+", pair[1], "|", cnt, "次")
+print()
+
+# ----- 单品频次 -----
+print(">>> 步骤 2：计算单品出现频次")
+item_counts = {}
+for b in baskets:
+    for item in b:
+        if item in item_counts:
+            item_counts[item] += 1
+        else:
+            item_counts[item] = 1
+
+sorted_items = sorted(item_counts.items(), key=lambda x: x[1], reverse=True)
+print("商品 | 出现频次")
+for item, cnt in sorted_items:
+    print(item, "|", cnt, "次")
+print()
+
+# ----- 推荐组合 -----
+print(">>> 步骤 3：生成关联推荐")
+total_baskets = len(baskets)
+print("总购物篮数:", total_baskets)
+print()
+print("【Top 推荐组合】")
+top_pairs = sorted_pairs[:5]
+for pair, cnt in top_pairs:
+    support = round(cnt / total_baskets * 100, 2)
+    conf_a = round(cnt / item_counts[pair[0]] * 100, 2)
+    conf_b = round(cnt / item_counts[pair[1]] * 100, 2)
+    print("  - 【", pair[0], "+", pair[1], "】共现", cnt, "次")
+    print("     支持度:", support, "% | 买", pair[0], "后买", pair[1], "置信度:", conf_a, "%")
+    print("     反向置信度(买", pair[1], "后买", pair[0], "):", conf_b, "%")
+print()
+
+# ----- 业务建议 -----
+print(">>> 步骤 4：业务建议")
+best_pair = top_pairs[0]
+print("【货架摆放建议】")
+print("  1. 【", best_pair[0][0], "】与【", best_pair[0][1], "】强关联，可相邻摆放")
+print("  2. 将高频商品放在主通道，引导浏览低频商品")
+
+print()
+print("【促销搭配建议】")
+for pair, cnt in top_pairs[:3]:
+    print("  -", pair[0], "与", pair[1], "可做组合套餐优惠，预计覆盖", round(cnt / total_baskets * 100, 0), "%的订单")
+
+print()
+print("【新品上架提示】")
+hot_item = sorted_items[0]
+print("  - 最高频商品【", hot_item[0], "】出现", hot_item[1], "次，可围绕它搭配新品")
+print()
+print("==== 分析结束 ====")

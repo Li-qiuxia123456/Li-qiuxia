@@ -1,0 +1,135 @@
+# ============================================================
+# 课程 9：用户流失预测
+# 指标：距上次登录天数 / 活跃天数 / 消费金额 / 距上次消费天数
+# 方法：阈值打分法
+# ============================================================
+
+print("==== 用户流失预测分析 ====")
+print()
+
+# ----- 输入数据 -----
+print(">>> 输入数据：10 位用户")
+users = [
+    {"name": "用户1", "days_since_login": 3, "active_days": 25, "spend": 8500, "days_since_spend": 5},
+    {"name": "用户2", "days_since_login": 45, "active_days": 8, "spend": 500, "days_since_spend": 40},
+    {"name": "用户3", "days_since_login": 10, "active_days": 18, "spend": 3200, "days_since_spend": 15},
+    {"name": "用户4", "days_since_login": 90, "active_days": 3, "spend": 200, "days_since_spend": 85},
+    {"name": "用户5", "days_since_login": 1, "active_days": 30, "spend": 12000, "days_since_spend": 2},
+    {"name": "用户6", "days_since_login": 25, "active_days": 10, "spend": 1500, "days_since_spend": 20},
+    {"name": "用户7", "days_since_login": 60, "active_days": 5, "spend": 400, "days_since_spend": 55},
+    {"name": "用户8", "days_since_login": 7, "active_days": 22, "spend": 6800, "days_since_spend": 10},
+    {"name": "用户9", "days_since_login": 35, "active_days": 7, "spend": 800, "days_since_spend": 30},
+    {"name": "用户10", "days_since_login": 15, "active_days": 15, "spend": 2500, "days_since_spend": 18},
+]
+
+print("用户 | 距上次登录 | 活跃天数 | 消费金额 | 距上次消费")
+for u in users:
+    print(u["name"], "|", u["days_since_login"], "天 |", u["active_days"], "天 |", u["spend"], "元 |", u["days_since_spend"], "天")
+print()
+
+# ----- 阈值打分 -----
+print(">>> 步骤 1：基于阈值打分（分数越高流失风险越高）")
+def churn_score(u):
+    s = 0
+    dsl = u["days_since_login"]
+    ad = u["active_days"]
+    sp = u["spend"]
+    dss = u["days_since_spend"]
+
+    if dsl >= 60:
+        s += 30
+    elif dsl >= 30:
+        s += 20
+    elif dsl >= 15:
+        s += 10
+
+    if dss >= 60:
+        s += 25
+    elif dss >= 30:
+        s += 15
+    elif dss >= 15:
+        s += 8
+
+    if ad <= 5:
+        s += 20
+    elif ad <= 10:
+        s += 12
+    elif ad <= 15:
+        s += 6
+
+    if sp <= 500:
+        s += 15
+    elif sp <= 1500:
+        s += 8
+    elif sp <= 3000:
+        s += 3
+    return s
+
+for u in users:
+    u["score"] = churn_score(u)
+    if u["score"] >= 60:
+        u["level"] = "高风险（已流失/即将流失）"
+    elif u["score"] >= 35:
+        u["level"] = "中风险（需关注）"
+    elif u["score"] >= 15:
+        u["level"] = "低风险（较活跃）"
+    else:
+        u["level"] = "健康用户"
+
+sorted_u = sorted(users, key=lambda x: x["score"], reverse=True)
+print("用户 | 流失分数 | 风险等级")
+for u in sorted_u:
+    print(u["name"], "|", u["score"], "|", u["level"])
+print()
+
+# ----- 风险名单与策略 -----
+print(">>> 步骤 2：各用户详细分析与留存策略")
+for u in sorted_u:
+    print("【", u["name"], "】分数:", u["score"], "等级:", u["level"])
+    print("   距上次登录:", u["days_since_login"], "天 | 活跃:", u["active_days"], "天 | 消费:", u["spend"], "元")
+    if u["score"] >= 60:
+        print("   策略：紧急召回 — 专属客服回访 + 大额优惠礼包")
+    elif u["score"] >= 35:
+        print("   策略：主动关怀 — 个性化推荐 + 优惠券推送")
+    elif u["score"] >= 15:
+        print("   策略：常规维护 — 定期推送，保持互动频率")
+    else:
+        print("   策略：增值服务 — 鼓励分享与复购，提升 LTV")
+    print()
+
+# ----- 整体结论 -----
+print(">>> 步骤 3：整体结论与运营建议")
+risk_groups = {"高风险": 0, "中风险": 0, "低风险": 0, "健康": 0}
+high_value_risk = 0
+total_spend = 0
+for u in users:
+    total_spend += u["spend"]
+    if u["level"].find("高风险") >= 0:
+        risk_groups["高风险"] += 1
+        if u["spend"] >= 1000:
+            high_value_risk += 1
+    elif u["level"].find("中风险") >= 0:
+        risk_groups["中风险"] += 1
+    elif u["level"].find("低风险") >= 0:
+        risk_groups["低风险"] += 1
+    else:
+        risk_groups["健康"] += 1
+
+print("  - 高风险用户:", risk_groups["高风险"], "人")
+print("  - 中风险用户:", risk_groups["中风险"], "人")
+print("  - 低风险用户:", risk_groups["低风险"], "人")
+print("  - 健康用户:", risk_groups["健康"], "人")
+
+churn_rate = round((risk_groups["高风险"] + risk_groups["中风险"]) / len(users) * 100, 2)
+print("  - 总体风险比例（高+中）:", churn_rate, "%")
+print("  - 高价值高风险用户:", high_value_risk, "人（优先召回）")
+print()
+print("【运营建议】")
+print("  1. 优先对", risk_groups["高风险"], "位高风险用户启动紧急召回")
+print("  2. 对", high_value_risk, "位高价值高风险用户分配专属客服")
+print("  3. 中风险用户推送优惠券+个性化商品组合，刺激回归")
+print("  4. 健康用户作为核心收入来源，提供会员专属权益维护")
+if churn_rate > 40:
+    print("  5. 警告：整体风险比例偏高，建议做一轮产品体验调查")
+print()
+print("==== 分析结束 ====")

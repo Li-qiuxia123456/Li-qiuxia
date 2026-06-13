@@ -1,0 +1,100 @@
+# ============================================================
+# 课程 5：企业员工绩效分析
+# ============================================================
+
+print("==== 企业员工绩效分析 ====")
+print()
+
+# ----- 输入数据 -----
+print(">>> 输入数据：18 名员工")
+employees = [
+    {"name": "张伟", "dept": "研发", "score": 92},
+    {"name": "李娜", "dept": "销售", "score": 88},
+    {"name": "王强", "dept": "市场", "score": 75},
+    {"name": "刘洋", "dept": "研发", "score": 85},
+    {"name": "陈静", "dept": "销售", "score": 95},
+    {"name": "杨光", "dept": "财务", "score": 82},
+    {"name": "赵敏", "dept": "研发", "score": 90},
+    {"name": "周杰", "dept": "市场", "score": 68},
+    {"name": "吴芳", "dept": "销售", "score": 83},
+    {"name": "郑浩", "dept": "研发", "score": 94},
+    {"name": "孙丽", "dept": "财务", "score": 78},
+    {"name": "钱勇", "dept": "市场", "score": 72},
+    {"name": "朱琳", "dept": "销售", "score": 90},
+    {"name": "徐涛", "dept": "研发", "score": 88},
+    {"name": "马静", "dept": "财务", "score": 85},
+    {"name": "黄河", "dept": "市场", "score": 70},
+    {"name": "杨帆", "dept": "销售", "score": 91},
+    {"name": "林涛", "dept": "研发", "score": 87},
+]
+
+for e in employees:
+    print(e["name"], "部门:", e["dept"], "绩效:", e["score"])
+print()
+
+# ----- 公司平均 -----
+print(">>> 步骤 1：公司平均绩效")
+n = len(employees)
+company_avg = round(sum(e["score"] for e in employees) / n, 2)
+print("员工总数:", n)
+print("公司平均绩效:", company_avg)
+print()
+
+# ----- 各部门统计 -----
+print(">>> 步骤 2：各部门绩效统计")
+dept_data = {}
+for e in employees:
+    d = e["dept"]
+    if d not in dept_data:
+        dept_data[d] = []
+    dept_data[d].append(e["score"])
+
+dept_stats = []
+for d, scores in dept_data.items():
+    avg = round(sum(scores) / len(scores), 2)
+    dept_stats.append({"dept": d, "avg": avg, "count": len(scores), "max": max(scores), "min": min(scores)})
+
+sorted_stats = sorted(dept_stats, key=lambda x: x["avg"], reverse=True)
+print("部门 | 人数 | 平均 | 最高 | 最低 | 与公司均值差")
+for s in sorted_stats:
+    diff = round(s["avg"] - company_avg, 2)
+    print(s["dept"], "|", s["count"], "人 |", s["avg"], "|", s["max"], "|", s["min"], "|", diff)
+print()
+
+# ----- 识别高/低绩效部门 -----
+print(">>> 步骤 3：识别高绩效与低绩效部门")
+high_depts = [s for s in sorted_stats if s["avg"] > company_avg + 3]
+low_depts = [s for s in sorted_stats if s["avg"] < company_avg - 3]
+
+print("公司平均:", company_avg)
+if high_depts:
+    for s in high_depts:
+        print("【高绩效部门】", s["dept"], "平均", s["avg"], "高于公司均值", round(s["avg"] - company_avg, 2))
+if low_depts:
+    for s in low_depts:
+        print("【低绩效部门】", s["dept"], "平均", s["avg"], "低于公司均值", round(company_avg - s["avg"], 2))
+print()
+
+# ----- 个人排名 -----
+print(">>> 步骤 4：个人绩效排名（Top 5 & Bottom 5）")
+sorted_emp = sorted(employees, key=lambda x: x["score"], reverse=True)
+print("【Top 5】")
+for e in sorted_emp[:5]:
+    print("  -", e["name"], "部门:", e["dept"], "绩效:", e["score"])
+print("【Bottom 5】")
+for e in sorted_emp[-5:]:
+    print("  -", e["name"], "部门:", e["dept"], "绩效:", e["score"])
+print()
+
+# ----- 管理建议 -----
+print(">>> 步骤 5：管理建议")
+best = sorted_stats[0]
+worst = sorted_stats[-1]
+print("  1. 【", best["dept"], "】部门绩效最高（", best["avg"], "），可推广其管理方法作为内部标杆")
+print("  2. 【", worst["dept"], "】部门绩效最低（", worst["avg"], "），建议加强培训与过程管理")
+print("  3. Top 员工可作为导师，帮助低绩效同事成长")
+print("  4. 低绩效员工应制定个人改进计划，定期评估")
+if worst["avg"] < company_avg - 5:
+    print("  5. 警告：", worst["dept"], "显著低于公司均值，建议管理层介入")
+print()
+print("==== 分析结束 ====")

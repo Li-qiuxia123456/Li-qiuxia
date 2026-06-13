@@ -1,0 +1,112 @@
+# ============================================================
+# 课程 8：信贷风险评估
+# 数据：7 位申请人（收入/负债/逾期次数/查询次数）
+# 分析：DTI + 规则打分 + 风险分级
+# ============================================================
+
+print("==== 信贷风险评估 ====")
+print()
+
+# ----- 输入数据 -----
+print(">>> 输入数据：7 位申请人")
+applicants = [
+    {"name": "张先生", "income": 15000, "debt": 4500, "overdue": 0, "inquiry": 2},
+    {"name": "李女士", "income": 8000, "debt": 5000, "overdue": 2, "inquiry": 6},
+    {"name": "王经理", "income": 35000, "debt": 8000, "overdue": 0, "inquiry": 1},
+    {"name": "赵先生", "income": 6000, "debt": 4800, "overdue": 3, "inquiry": 8},
+    {"name": "孙小姐", "income": 20000, "debt": 4000, "overdue": 1, "inquiry": 3},
+    {"name": "周先生", "income": 12000, "debt": 7500, "overdue": 1, "inquiry": 5},
+    {"name": "吴女士", "income": 50000, "debt": 10000, "overdue": 0, "inquiry": 0},
+]
+
+print("申请人 | 月收入 | 月负债 | 逾期次数 | 查询次数")
+for a in applicants:
+    print(a["name"], "|", a["income"], "|", a["debt"], "|", a["overdue"], "|", a["inquiry"])
+print()
+
+# ----- 计算 DTI -----
+print(">>> 步骤 1：计算负债收入比 DTI")
+for a in applicants:
+    a["dti"] = round(a["debt"] / a["income"] * 100, 2)
+    print(a["name"], "DTI:", a["dti"], "%")
+print()
+
+# ----- 规则打分 -----
+print(">>> 步骤 2：规则打分（满分 100，分数越低风险越高）")
+def calc_score(a):
+    score = 100
+    dti = a["dti"]
+    if dti > 50:
+        score -= 30
+    elif dti > 40:
+        score -= 20
+    elif dti > 30:
+        score -= 10
+
+    if a["overdue"] >= 3:
+        score -= 25
+    elif a["overdue"] >= 2:
+        score -= 15
+    elif a["overdue"] >= 1:
+        score -= 8
+
+    if a["inquiry"] >= 8:
+        score -= 20
+    elif a["inquiry"] >= 5:
+        score -= 12
+    elif a["inquiry"] >= 3:
+        score -= 5
+
+    if a["income"] >= 30000:
+        score += 5
+    return max(score, 0)
+
+for a in applicants:
+    a["score"] = calc_score(a)
+    if a["score"] >= 80:
+        a["level"] = "低风险"
+    elif a["score"] >= 60:
+        a["level"] = "中风险"
+    elif a["score"] >= 40:
+        a["level"] = "高风险"
+    else:
+        a["level"] = "极高风险"
+
+sorted_a = sorted(applicants, key=lambda x: x["score"], reverse=True)
+print("申请人 | 分数 | 风险等级")
+for a in sorted_a:
+    print(a["name"], "|", a["score"], "|", a["level"])
+print()
+
+# ----- 风险建议 -----
+print(">>> 步骤 3：各申请人评估与建议")
+for a in sorted_a:
+    print("【", a["name"], "】分数:", a["score"], "等级:", a["level"])
+    print("   DTI:", a["dti"], "% | 逾期:", a["overdue"], "次 | 查询:", a["inquiry"], "次")
+    if a["level"] == "低风险":
+        print("   建议：可正常审批，推荐较高额度")
+    elif a["level"] == "中风险":
+        print("   建议：需补充资料，审批额度应控制在中低水平")
+    elif a["level"] == "高风险":
+        print("   建议：需要人工复核，建议降低额度或增加担保")
+    else:
+        print("   建议：风险过高，建议拒绝申请")
+    print()
+
+print(">>> 步骤 4：整体结论")
+risk_counts = {"低风险": 0, "中风险": 0, "高风险": 0, "极高风险": 0}
+for a in applicants:
+    risk_counts[a["level"]] += 1
+print("  - 低风险:", risk_counts["低风险"], "人")
+print("  - 中风险:", risk_counts["中风险"], "人")
+print("  - 高风险:", risk_counts["高风险"], "人")
+print("  - 极高风险:", risk_counts["极高风险"], "人")
+
+avg_dti = round(sum(a["dti"] for a in applicants) / len(applicants), 2)
+print("  - 平均 DTI:", avg_dti, "%")
+if avg_dti > 40:
+    print("  - 注意：平均 DTI 偏高，整体需加强风控")
+print()
+print("  审批策略：低风险自动通过，中风险人工审核，高风险及以上谨慎处理")
+print()
+print("==== 分析结束 ====")

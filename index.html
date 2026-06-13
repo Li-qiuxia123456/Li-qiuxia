@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DataLearn · 商务数据分析与应用 Python 学习平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      colors: { brand: { 50:'#EEF4FF', 100:'#DBE8FF', 200:'#B8D1FF', 500:'#165DFF', 600:'#0E4BDB', 700:'#0A39A8' } }
+    }}};
+</script>
+<style>
+body { font-family:"PingFang SC","Microsoft YaHei",sans-serif; }
+.hover-lift { transition: transform .25s ease, box-shadow .25s ease; }
+.hover-lift:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(22,93,255,.18); }
+.btn-primary { transition: background-color .2s ease, transform .2s ease, box-shadow .2s ease; }
+.btn-primary:hover { background-color: #0E4BDB; box-shadow: 0 8px 20px rgba(14,75,219,.3); }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+<nav class="bg-white/95 backdrop-blur border-b border-gray-100 sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+    <a href="#top" class="flex items-center gap-2 font-bold text-brand-500">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-500 text-white text-sm">D</span>
+      DataLearn
+    </a>
+    <div class="hidden md:flex items-center gap-7 text-sm text-gray-600">
+      <a href="#courses" class="hover:text-brand-500 transition">精选课程</a>
+      <a href="#path" class="hover:text-brand-500 transition">学习路径</a>
+      <a href="#stack" class="hover:text-brand-500 transition">技术栈</a>
+    </div>
+    <a href="#courses" class="text-sm bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg font-semibold">开始学习</a>
+  </div>
+</nav>
+
+<header id="top" class="bg-gradient-to-br from-brand-50 via-white to-brand-50">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 py-16 md:py-24 text-center">
+    <div class="inline-flex items-center gap-2 bg-white border border-brand-100 text-brand-500 px-4 py-1.5 rounded-full text-xs font-medium shadow-sm mb-6">
+      <span>📊</span> 商务数据分析 · Python 实战学习社区
+    </div>
+    <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
+      商务数据分析与应用
+      <span class="block text-brand-500 mt-2">Python 学习平台</span>
+    </h1>
+    <p class="mt-6 text-base md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
+      系统化学习数据分析技能，从基础到进阶，助你成为数据驱动的商务决策专家。浏览器内直接运行 Python，无需本地环境。
+    </p>
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href="#courses" class="btn-primary bg-brand-500 text-white px-6 py-3 rounded-xl font-semibold shadow-sm inline-flex items-center gap-2">📚 浏览课程</a>
+      <a href="#path" class="bg-white border border-gray-200 text-gray-700 px-6 py-3 rounded-xl font-semibold hover-lift inline-flex items-center gap-2">🗺️ 查看路径</a>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 md:px-6 pb-16 space-y-12">
+
+  <section class="-mt-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-2xl p-5 shadow-sm hover-lift text-center border border-gray-100">
+        <div class="text-2xl md:text-3xl font-extrabold text-gray-900">10<span class="text-sm text-gray-400"> 门</span></div>
+        <div class="text-xs md:text-sm text-gray-500 mt-1">精品实战课程</div>
+      </div>
+      <div class="bg-white rounded-2xl p-5 shadow-sm hover-lift text-center border border-gray-100">
+        <div class="text-2xl md:text-3xl font-extrabold text-gray-900">8500<span class="text-sm text-gray-400">+</span></div>
+        <div class="text-xs md:text-sm text-gray-500 mt-1">累计学习人数</div>
+      </div>
+      <div class="bg-white rounded-2xl p-5 shadow-sm hover-lift text-center border border-gray-100">
+        <div class="text-2xl md:text-3xl font-extrabold text-gray-900">4.8<span class="text-sm text-gray-400"> 分</span></div>
+        <div class="text-xs md:text-sm text-gray-500 mt-1">课程平均评分</div>
+      </div>
+      <div class="bg-white rounded-2xl p-5 shadow-sm hover-lift text-center border border-gray-100">
+        <div class="text-2xl md:text-3xl font-extrabold text-gray-900">0<span class="text-sm text-gray-400"> 配置</span></div>
+        <div class="text-xs md:text-sm text-gray-500 mt-1">浏览器内直接运行 Python</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="courses">
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <div class="text-xs text-brand-500 font-semibold">COURSES</div>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mt-1">10 门实战课程</h2>
+        <p class="text-gray-500 text-sm mt-2">覆盖零售、电商、人力、餐饮、金融等典型业务场景，使用纯 Python 语法即可运行。</p>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+<a href="course1.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">1</div><div><div class="text-xs text-gray-400">课程 1 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">零售门店客流数据分析</h3></div></div><span class="text-green-700 bg-green-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">初级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">解析线下门店每日客流、时段分布与节假日差异，输出排班与促销建议。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">Python 基础</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">列表与字典</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">数据统计</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">零售运营</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 9 小时 · ★ 4.8</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course2.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">2</div><div><div class="text-xs text-gray-400">课程 2 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">电商订单数据异常检测</h3></div></div><span class="text-green-700 bg-green-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">初级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">通过订单金额、下单频次、账号行为等指标，识别异常订单与风险账号。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">电商数据</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">异常检测</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">订单分析</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">风控基础</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 10 小时 · ★ 4.8</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course3.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">3</div><div><div class="text-xs text-gray-400">课程 3 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">RFM 用户分层与精准营销</h3></div></div><span class="text-brand-700 bg-brand-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">中级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">基于最近购买时间、频次、金额三维度，对会员进行分层，输出精准营销与差异化运营策略。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">用户分层</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">RFM 模型</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">精准营销</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">会员体系</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 12 小时 · ★ 4.9</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course4.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">4</div><div><div class="text-xs text-gray-400">课程 4 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">电商商品关联推荐分析</h3></div></div><span class="text-brand-700 bg-brand-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">中级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">通过购物篮数据挖掘商品组合，为关联推荐与捆绑销售提供数据依据。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">关联推荐</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">购物篮分析</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">商品组合</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">电商增长</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 10 小时 · ★ 4.7</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course5.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">5</div><div><div class="text-xs text-gray-400">课程 5 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">企业员工绩效数据分析</h3></div></div><span class="text-green-700 bg-green-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">初级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">以部门为单位对员工绩效进行分组统计，识别高低绩效部门并给出改进建议。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">HR 分析</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">分组统计</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">平均值</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">员工绩效</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 8 小时 · ★ 4.6</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course6.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">6</div><div><div class="text-xs text-gray-400">课程 6 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">餐饮门店营收数据分析</h3></div></div><span class="text-green-700 bg-green-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">初级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">按菜品维度统计销量与营收，识别明星菜品与滞销菜品，优化菜单结构。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">餐饮运营</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">菜品销售</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">菜单优化</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">分组统计</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 8 小时 · ★ 4.7</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course7.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">7</div><div><div class="text-xs text-gray-400">课程 7 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">库存销量预测分析</h3></div></div><span class="text-brand-700 bg-brand-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">中级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">使用历史销量数据与移动平均法，对未来销量做预测，指导补货与库存管理。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">时间序列</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">移动平均</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">库存预测</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">供应链</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 10 小时 · ★ 4.7</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course8.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">8</div><div><div class="text-xs text-gray-400">课程 8 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">金融信贷风险评估分析</h3></div></div><span class="text-purple-700 bg-purple-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">高级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">基于 DTI、逾期、查询次数等关键指标，手动实现一套简化规则评分卡，输出风险等级与授信建议。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">风控</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">信贷评分</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">规则打分</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">金融分析</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 14 小时 · ★ 4.8</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course9.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">9</div><div><div class="text-xs text-gray-400">课程 9 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">平台用户流失预测分析</h3></div></div><span class="text-purple-700 bg-purple-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">高级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">基于用户活跃与消费行为，构建简化流失风险打分模型，输出预警名单与挽回建议。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">用户增长</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">流失预测</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">用户行为</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">预警分析</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 12 小时 · ★ 4.8</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+<a href="course10.html" class="group block bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift"><div class="flex items-start justify-between gap-3"><div class="flex items-center gap-3"><div class="w-12 h-12 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center font-extrabold text-xl">10</div><div><div class="text-xs text-gray-400">课程 10 / 10</div><h3 class="font-bold text-gray-900 mt-0.5 group-hover:text-brand-500 transition">A/B 测试数据分析</h3></div></div><span class="text-brand-700 bg-brand-50 text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">中级</span></div><p class="text-sm text-gray-500 mt-4 leading-7">学习 A/B 测试基础概念，计算两组转化率，并给出上线或继续测试的数据决策。</p><div class="flex flex-wrap gap-1.5 mt-4"><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">A/B 测试</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">转化率</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">实验分析</span><span class="text-[11px] bg-gray-50 text-gray-600 border border-gray-200 px-2 py-0.5 rounded">数据驱动</span></div><div class="flex items-center justify-between text-xs text-gray-400 mt-5 pt-4 border-t border-gray-100"><span>⏱ 10 小时 · ★ 4.8</span><span class="text-brand-500 font-semibold group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">开始学习 →</span></div></a>
+
+    </div>
+  </section>
+
+  <section id="path" class="bg-white rounded-3xl p-7 md:p-10 shadow-sm border border-gray-100">
+    <div class="text-xs text-brand-500 font-semibold">LEARNING PATH</div>
+    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mt-1">建议学习路径</h2>
+    <p class="text-gray-500 text-sm mt-2">按业务场景循序渐进，每门课都包含：知识点讲解 → 选择题练习 → 在线代码实践。</p>
+    <div class="grid md:grid-cols-3 gap-4 mt-6">
+      <div class="rounded-2xl border border-green-100 bg-green-50/60 p-5">
+        <div class="text-green-600 font-bold">阶段 1 · 初级</div>
+        <div class="text-sm text-gray-600 mt-2 leading-7">客流分析 / 订单异常检测 / 员工绩效 / 餐饮营收</div>
+      </div>
+      <div class="rounded-2xl border border-brand-100 bg-blue-50/60 p-5">
+        <div class="text-brand-500 font-bold">阶段 2 · 中级</div>
+        <div class="text-sm text-gray-600 mt-2 leading-7">RFM 用户分层 / 商品关联推荐 / 库存预测 / A/B 测试</div>
+      </div>
+      <div class="rounded-2xl border border-purple-100 bg-purple-50/60 p-5">
+        <div class="text-purple-600 font-bold">阶段 3 · 高级</div>
+        <div class="text-sm text-gray-600 mt-2 leading-7">金融信贷风险评估 / 用户流失预测</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="stack">
+    <div class="text-xs text-brand-500 font-semibold">TECH STACK</div>
+    <h2 class="text-2xl md:text-3xl font-extrabold text-gray-900 mt-1">为什么选择本站</h2>
+    <div class="grid md:grid-cols-3 gap-5 mt-6">
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
+        <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center text-lg font-bold">⚡</div>
+        <h3 class="font-bold text-gray-900 mt-4">零配置运行</h3>
+        <p class="text-sm text-gray-500 mt-2 leading-7">基于轻量 Skulpt 解释器，浏览器内即时运行 Python，首次运行无需等待。</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
+        <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center text-lg font-bold">📘</div>
+        <h3 class="font-bold text-gray-900 mt-4">真实业务场景</h3>
+        <p class="text-sm text-gray-500 mt-2 leading-7">10 门课程均来自真实商务数据分析场景，学完即可应用到工作中。</p>
+      </div>
+      <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover-lift">
+        <div class="w-10 h-10 rounded-xl bg-brand-500 text-white flex items-center justify-center text-lg font-bold">🌐</div>
+        <h3 class="font-bold text-gray-900 mt-4">静态可部署</h3>
+        <p class="text-sm text-gray-500 mt-2 leading-7">纯 HTML/CSS/JS，可部署到 Cloudflare Pages / GitHub Pages / Vercel 等任意静态服务。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="border-t border-gray-100 bg-white">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 py-8 text-sm text-gray-500 flex flex-col md:flex-row items-center justify-between gap-3">
+    <div>© 2025 DataLearn · 商务数据分析与应用 Python 学习平台</div>
+    <div class="text-xs text-gray-400">Powered by Skulpt · Tailwind CSS · Pure Static</div>
+  </div>
+</footer>
+
+</body>
+</html>

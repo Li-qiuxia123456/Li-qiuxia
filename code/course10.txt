@@ -1,0 +1,145 @@
+# ============================================================
+# 课程 10：A/B 测试分析
+# 两组：对照组 A 和实验组 B，分析转化率、提升、模拟显著性
+# ============================================================
+
+print("==== A/B 测试分析 ====")
+print()
+
+# ----- 输入数据 -----
+print(">>> 输入数据：两组测试数据")
+group_a = {"name": "对照组(A)", "users": 5000, "conversions": 420}
+group_b = {"name": "实验组(B)", "users": 5100, "conversions": 510}
+
+print(group_a["name"], ": 用户", group_a["users"], "人，转化", group_a["conversions"], "人")
+print(group_b["name"], ": 用户", group_b["users"], "人，转化", group_b["conversions"], "人")
+print()
+
+# ----- 转化率计算 -----
+print(">>> 步骤 1：计算转化率")
+cr_a = round(group_a["conversions"] / group_a["users"] * 100, 2)
+cr_b = round(group_b["conversions"] / group_b["users"] * 100, 2)
+abs_lift = round(cr_b - cr_a, 2)
+rel_lift = round((cr_b - cr_a) / cr_a * 100, 2)
+
+print(group_a["name"], "转化率:", cr_a, "%")
+print(group_b["name"], "转化率:", cr_b, "%")
+print("绝对提升:", abs_lift, "%")
+print("相对提升:", rel_lift, "%")
+print()
+
+# ----- 简单随机抽样模拟 -----
+print(">>> 步骤 2：随机抽样模拟（90 次，基于实际转化率重复抽样）")
+true_cr_a = group_a["conversions"] / group_a["users"]
+true_cr_b = group_b["conversions"] / group_b["users"]
+
+b_better = 0
+win_margin_list = []
+seed = 7777
+for trial in range(90):
+    sim_a_conv = 0
+    for i in range(group_a["users"]):
+        seed = (seed * 9301 + 49297) % 233280
+        r = seed / 233280
+        if r < true_cr_a:
+            sim_a_conv += 1
+
+    sim_b_conv = 0
+    for i in range(group_b["users"]):
+        seed = (seed * 9301 + 49297) % 233280
+        r = seed / 233280
+        if r < true_cr_b:
+            sim_b_conv += 1
+
+    sim_cr_a = sim_a_conv / group_a["users"] * 100
+    sim_cr_b = sim_b_conv / group_b["users"] * 100
+    margin = round(sim_cr_b - sim_cr_a, 2)
+    win_margin_list.append(margin)
+    if sim_cr_b > sim_cr_a:
+        b_better += 1
+
+print("模拟次数: 90")
+print("B 组胜出次数:", b_better, "/ 90")
+b_win_rate = round(b_better / 90 * 100, 2)
+print("B 组胜率:", b_win_rate, "%")
+
+if len(win_margin_list) > 0:
+    avg_margin = round(sum(win_margin_list) / len(win_margin_list), 2)
+    max_margin = round(max(win_margin_list), 2)
+    min_margin = round(min(win_margin_list), 2)
+    print("模拟转化率差均值:", avg_margin, "%")
+    print("模拟最大差值:", max_margin, "%")
+    print("模拟最小差值:", min_margin, "%")
+print()
+
+# ----- 零假设模拟（验证偶然因素能否产生当前差异） -----
+print(">>> 步骤 2b：零假设随机模拟（将两组数据混合后随机拆分，观察出现相同差异的概率）")
+total_users = group_a["users"] + group_b["users"]
+total_conv = group_a["conversions"] + group_b["conversions"]
+pool_cr = total_conv / total_users
+
+extreme_count = 0
+for trial in range(90):
+    sim_a_conv = 0
+    for i in range(group_a["users"]):
+        seed = (seed * 9301 + 49297) % 233280
+        r = seed / 233280
+        if r < pool_cr:
+            sim_a_conv += 1
+
+    sim_b_conv = 0
+    for i in range(group_b["users"]):
+        seed = (seed * 9301 + 49297) % 233280
+        r = seed / 233280
+        if r < pool_cr:
+            sim_b_conv += 1
+
+    sim_diff = (sim_b_conv / group_b["users"] - sim_a_conv / group_a["users"]) * 100
+    if sim_diff >= abs_lift:
+        extreme_count += 1
+
+p_est = round(extreme_count / 90 * 100, 2)
+print("在 90 次零假设模拟中，出现 >= 实际差异 (", abs_lift, "%) 的次数：", extreme_count)
+print("估计 p 值（差异由偶然产生）:", p_est, "%")
+print()
+
+# ----- 统计描述 -----
+print(">>> 步骤 3：结果判定与业务建议")
+print("【实际数据】")
+print("  A 组转化率:", cr_a, "% | B 组转化率:", cr_b, "%")
+print("  绝对提升:", abs_lift, "% | 相对提升:", rel_lift, "%")
+print()
+print("【模拟显著性判断】")
+print("  B 组在", b_win_rate, "%的随机模拟中表现更好")
+print("  零假设下偶然出现同样差异的概率：", p_est, "%")
+print()
+
+if b_win_rate >= 85 and p_est <= 10 and rel_lift > 5:
+    conclusion = "显著正向 — 建议全面采用 B 方案"
+    action = "上线 B 方案，并将其作为新版本基线"
+elif b_win_rate >= 70 and rel_lift > 0:
+    conclusion = "正向趋势 — 建议进一步验证"
+    action = "扩大样本再测一轮，或小流量灰度上线 B 方案"
+elif b_win_rate >= 50:
+    conclusion = "无显著差异 — 无明显优劣"
+    action = "可维持 A 方案，或继续收集更多数据"
+elif abs_lift < 0:
+    conclusion = "显著负向 — B 方案效果更差"
+    action = "立即停止 B 方案，分析失败原因，避免再次出现"
+else:
+    conclusion = "结果不确定 — 需要更多数据"
+    action = "延长测试周期，收集更多样本后再评估"
+
+print("【结论】", conclusion)
+print("【建议行动】", action)
+print()
+print("【业务决策清单】")
+print("  1. 转化率提升", rel_lift, "%，如上线预计带来额外转化：",
+      int(group_b["users"] * (cr_b - cr_a) / 100), "人")
+print("  2. B 组模拟胜率", b_win_rate, "%，高于 85% 可判定为稳定胜出")
+print("  3. 零假设 p 值", p_est, "%，低于 10% 说明差异不易由偶然产生")
+print("  4. 如业务风险低，可先小范围上线 B 方案")
+print("  5. 建议同时记录其他指标（留存、客单）确保无副作用")
+print("  6. 每轮 A/B 测试后更新测试文档与经验库")
+print()
+print("==== 分析结束 ====")

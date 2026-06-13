@@ -1,0 +1,17 @@
+# 临时文件
+__pycache__/
+*.pyc
+*.pyo
+*.py,cover
+.cache/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# 日志
+*.log

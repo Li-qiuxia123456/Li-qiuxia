@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>__TITLE__ | DataLearn · 商务数据分析 Python 学习平台</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- PyScript (Pyodide) 核心：直接在浏览器里跑 Python -->
+<link rel="stylesheet" href="https://pyscript.net/releases/2024.6.1/core.css" />
+<script type="module" src="https://pyscript.net/releases/2024.6.1/core.js"></script>
+<script>
+  // 统一主题色：与首页保持一致的浅蓝商务风
+  tailwind.config = {
+    theme: { extend: {
+      colors: {
+        brand: {
+          50:'#EEF4FF', 100:'#DBE8FF', 200:'#B8D1FF',
+          500:'#165DFF', 600:'#0E4BDB', 700:'#0A39A8',
+        }
+      },
+      boxShadow: {
+        soft: '0 4px 16px rgba(22, 93, 255, 0.08)',
+        hover:'0 14px 36px rgba(22, 93, 255, 0.18)',
+      }
+    }}
+  };
+</script>
+<style>
+  body { font-family: "PingFang SC", -apple-system, BlinkMacSystemFont, "Microsoft YaHei", sans-serif; }
+  /* ===== 代码编辑器 ===== */
+  .code-editor {
+    font-family: "JetBrains Mono", "Monaco", "Menlo", monospace;
+    font-size: 14px; line-height: 1.65;
+    background: #0f172a; color: #e2e8f0;
+    border: 1px solid #1e293b; border-radius: 0.75rem;
+    padding: 1rem 1.25rem; width: 100%; min-height: 280px;
+    resize: vertical; tab-size: 4; outline: none;
+    white-space: pre;
+  }
+  .code-editor:focus { border-color:#165DFF; box-shadow: 0 0 0 3px rgba(22,93,255,.2); }
+  /* 简易语法高亮：仅做关键字颜色提示 */
+  .kw { color: #c4b5fd; font-weight: 600; }
+  .str { color: #86efac; }
+  .num { color: #fbbf24; }
+  .cmt { color: #64748b; font-style: italic; }
+
+  /* ===== 输出区 ===== */
+  .output-box {
+    background:#020617; color:#e2e8f0;
+    font-family:"JetBrains Mono","Menlo",monospace;
+    font-size:13px; line-height:1.7;
+    padding: 1rem 1.25rem; border-radius: 0.75rem;
+    min-height: 120px; white-space: pre-wrap; word-break: break-word;
+    border:1px solid #1e293b;
+    max-height: 520px; overflow:auto;
+  }
+  .out-err { color:#fca5a5; }
+  .out-info { color:#93c5fd; }
+  .out-ok { color:#86efac; }
+
+  /* ===== 可折叠区域 ===== */
+  details summary { cursor:pointer; list-style:none; }
+  details summary::-webkit-details-marker { display:none; }
+  details[open] .caret { transform: rotate(90deg); }
+  .caret { transition: transform .2s ease; display:inline-block; }
+
+  /* 选择题：选项卡片 */
+  .choice-item {
+    border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 0.85rem 1rem;
+    cursor: pointer; transition: all .15s ease; background:#f8fafc;
+    display:flex; align-items:flex-start; gap:.75rem;
+  }
+  .choice-item:hover { border-color:#165DFF; background:#EEF4FF; }
+  .choice-item input { accent-color:#165DFF; margin-top: 3px; }
+  .choice-item.selected { border-color:#165DFF; background:#EEF4FF; }
+  .choice-item.correct { border-color:#10b981; background:#ecfdf5; }
+  .choice-item.wrong   { border-color:#ef4444; background:#fef2f2; }
+  .choice-letter { font-weight:700; color:#165DFF; }
+
+  /* 难度标签颜色 */
+  .tag-beginner { background:#dcfce7; color:#15803d; }
+  .tag-intermediate { background:#dbeafe; color:#1d4ed8; }
+  .tag-advanced { background:#ede9fe; color:#6d28d9; }
+
+  /* 代码高亮迷你块（知识点里的 <pre>） */
+  pre.code-snippet {
+    background:#0f172a; color:#e2e8f0; border-radius:.6rem;
+    padding:.9rem 1rem; font-size:13px; line-height:1.6;
+    font-family:"JetBrains Mono","Monaco",monospace;
+    overflow:auto; border:1px solid #1e293b;
+    white-space: pre;
+  }
+
+  /* 按钮 loading spinner */
+  .spinner {
+    display:inline-block; width:14px; height:14px; border:2px solid #ffffff66;
+    border-top-color:#fff; border-radius:50%; animation: spin 0.8s linear infinite;
+    vertical-align:-2px; margin-right:6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* hover-lift */
+  .hover-lift { transition: transform .25s ease, box-shadow .25s ease; }
+  .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(22,93,255,.12); }
+
+  /* 星标评分 */
+  .star { color:#fbbf24; }
+</style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased">
+
+<!-- ===== 顶部导航 ===== -->
+<nav class="bg-white/95 backdrop-blur border-b border-gray-100 sticky top-0 z-40">
+  <div class="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
+    <a href="index.html" class="flex items-center gap-2 font-bold text-brand-500">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-500 text-white text-sm">D</span>
+      <span class="hidden sm:inline">DataLearn</span>
+    </a>
+    <div class="hidden md:flex items-center gap-6 text-sm text-gray-600">
+      <a href="index.html#courses" class="hover:text-brand-500 transition">全部课程</a>
+      <a href="index.html#path" class="hover:text-brand-500 transition">学习路径</a>
+      <a href="index.html#stack" class="hover:text-brand-500 transition">技术栈</a>
+    </div>
+    <a href="index.html" class="text-sm bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg font-semibold inline-flex items-center gap-1">
+      ← 返回首页
+    </a>
+  </div>
+</nav>
+
+<!-- ===== 课程头部 Hero ===== -->
+<header class="max-w-6xl mx-auto px-4 md:px-6 mt-8">
+  <div class="bg-gradient-to-br from-brand-500 to-brand-700 text-white rounded-3xl p-7 md:p-10 shadow-soft relative overflow-hidden">
+    <div class="absolute -top-10 -right-10 w-56 h-56 bg-white/10 rounded-full"></div>
+    <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-white/10 rounded-full"></div>
+    <div class="relative">
+      <div class="flex flex-wrap items-center gap-2 mb-4 text-xs">
+        <span class="bg-white/20 px-3 py-1 rounded-full font-semibold">课程 __NUM__ / 10</span>
+        <span class="px-3 py-1 rounded-full font-semibold __LEVELTAG__">__LEVEL__</span>
+        <span class="bg-white/20 px-3 py-1 rounded-full">⏱ __HOURS__</span>
+        <span class="bg-white/20 px-3 py-1 rounded-full star">★ __RATING__</span>
+      </div>
+      <h1 class="text-2xl md:text-4xl font-extrabold mb-3 leading-tight">__TITLE__</h1>
+      <p class="text-brand-50/90 text-base md:text-lg leading-relaxed max-w-3xl">__SUB__</p>
+
+      <div class="grid md:grid-cols-3 gap-3 md:gap-4 mt-6">
+        <div class="bg-white/10 rounded-xl p-4">
+          <div class="text-xs text-brand-100 mb-1">🎯 学习目标</div>
+          <div class="text-sm leading-6 whitespace-pre-line">__GOALS__</div>
+        </div>
+        <div class="bg-white/10 rounded-xl p-4">
+          <div class="text-xs text-brand-100 mb-1">👥 适合人群</div>
+          <div class="text-sm leading-6">__AUDIENCE__</div>
+        </div>
+        <div class="bg-white/10 rounded-xl p-4">
+          <div class="text-xs text-brand-100 mb-1">📖 前置知识</div>
+          <div class="text-sm leading-6">__PREREQ__</div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mt-5">
+        __TAGS__
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 md:px-6 mt-8 space-y-6 pb-16">
+
+  <!-- ===== 模块 2: 课程核心知识点（可折叠） ===== -->
+  <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8">
+    <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">📖 课程核心知识点</h2>
+    <p class="text-sm text-gray-500 mb-5">分小节讲解与代码示例，点击展开/收起查看详细内容。</p>
+    <div class="space-y-3">
+      __SECTIONS__
+    </div>
+  </section>
+
+  <!-- ===== 模块 3: 在线编程练习 ===== -->
+  <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8">
+    <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">💻 在线代码练习</h2>
+    <p class="text-sm text-gray-500 mb-5">
+      基于 <b class="text-brand-500">PyScript (Pyodide)</b>，代码在浏览器本地直接执行，无需后端，支持
+      <code class="bg-gray-100 px-1.5 py-0.5 rounded text-brand-600 text-xs">print / pandas / numpy / matplotlib</code>。
+      首次运行需要约 5-15 秒加载 Python 运行环境，请耐心等待。
+    </p>
+
+    <div class="grid lg:grid-cols-2 gap-5">
+      <!-- 左：代码编辑器 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm font-semibold text-gray-700">📝 代码编辑器</div>
+          <div class="text-xs text-gray-400" id="env-status">环境未加载</div>
+        </div>
+        <textarea id="code-editor" class="code-editor" spellcheck="false" placeholder="请稍候，正在载入默认代码示例..."></textarea>
+        <div class="flex flex-wrap gap-2 mt-3">
+          <button id="btn-run" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg shadow hover-lift inline-flex items-center gap-1">
+            ▶ 运行代码
+          </button>
+          <button id="btn-reset" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg inline-flex items-center gap-1">
+            ↺ 重置为默认示例
+          </button>
+          <button id="btn-copy" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg inline-flex items-center gap-1">
+            📋 复制代码
+          </button>
+        </div>
+        <div class="text-xs text-gray-400 mt-2 leading-6">
+          提示：你可以自由修改代码练习；如需要更干净的绘图环境，可在开头添加
+          <code class="bg-gray-100 px-1 rounded">plt.close('all')</code>。
+        </div>
+      </div>
+
+      <!-- 右：输出区 -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <div class="text-sm font-semibold text-gray-700">🖥 运行结果</div>
+          <button id="btn-clear-out" class="text-xs text-gray-400 hover:text-gray-700">清空</button>
+        </div>
+        <div id="output-area" class="output-box"></div>
+        <div class="text-xs text-gray-400 mt-2 leading-6">
+          正常输出为浅色文字；<span class="out-err">红色文字为错误/异常</span>；
+          若输出 matplotlib 图像，将以 PNG 图片形式显示在下方。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 模块 4: 课程小测 ===== -->
+  <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8">
+    <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-2">📝 课程小测</h2>
+    <p class="text-sm text-gray-500 mb-5">3 道单选，选择后点击"提交答案"查看得分与解析。</p>
+    <div id="quiz-box" class="space-y-5"></div>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 pt-5 border-t border-gray-100 gap-3">
+      <div id="quiz-total" class="text-sm text-gray-700"></div>
+      <div class="flex gap-2">
+        <button id="btn-quiz-reset" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg">↺ 重新作答</button>
+        <button id="btn-quiz" class="px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white text-sm font-semibold rounded-lg shadow hover-lift">✓ 提交答案</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 模块 5: 参考答案与解析（默认折叠） ===== -->
+  <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8">
+    <details id="answer-details">
+      <summary class="flex items-center justify-between list-none cursor-pointer">
+        <h2 class="text-xl md:text-2xl font-bold text-gray-900">💡 参考答案与解析</h2>
+        <span class="text-brand-500 text-sm font-semibold"><span class="caret">▶</span> 点击展开</span>
+      </summary>
+
+      <div class="mt-6 space-y-6">
+        <!-- 选择题答案 -->
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3">📘 选择题答案与详解</h3>
+          <div id="answer-quiz-text" class="space-y-3"></div>
+        </div>
+
+        <!-- 编程参考答案 -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-bold text-gray-900">💻 编程练习参考代码</h3>
+            <button id="btn-copy-ref" class="text-sm px-4 py-1.5 bg-brand-50 text-brand-600 hover:bg-brand-100 rounded-lg font-semibold">📋 一键复制</button>
+          </div>
+          <pre id="answer-code" class="code-snippet"></pre>
+          <p class="text-xs text-gray-400 mt-2">可将上述代码粘贴到上方编辑器后点击"运行代码"观察结果。</p>
+        </div>
+
+        <!-- 核心思路与注意事项 -->
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3">🧭 核心思路与常见错误</h3>
+          <pre id="answer-thinking" class="code-snippet" style="background:#f8fafc;color:#334155;border:1px solid #e5e7eb;"></pre>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ===== 模块 6: 学习总结 ===== -->
+  <section class="bg-white rounded-2xl shadow-soft border border-gray-100 p-6 md:p-8">
+    <h2 class="text-xl md:text-2xl font-bold text-gray-900 mb-4">📌 学习总结</h2>
+    <div id="summary-box" class="grid md:grid-cols-3 gap-4"></div>
+    <p class="text-sm text-gray-500 mt-5 leading-7">
+      💡 学习建议：
+      ① 先在知识点模块理解核心概念；
+      ② 在代码编辑器中反复修改示例代码，观察运行结果；
+      ③ 完成课程小测并对比详解，巩固所学；
+      ④ 回到 <a href="index.html#courses" class="text-brand-500 font-semibold">课程列表</a>，继续下一门。
+    </p>
+  </section>
+</main>
+
+<!-- ===== 页脚 ===== -->
+<footer class="bg-white border-t border-gray-100">
+  <div class="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-gray-400">
+    © 2026 DataLearn · 商务数据分析与应用 Python 学习平台 · Powered by PyScript (Pyodide)
+  </div>
+</footer>
+
+<!-- ===== 页面主脚本（PyScript 引擎 + 交互） ===== -->
+<script>
+/* =====================================================================
+   课程数据（由生成脚本写入每个 HTML 页面）
+   ===================================================================== */
+const COURSE = {
+  num: __NUM__,
+  title: __TITLE_JS__,
+  defaultCode: __DEFAULT_CODE__,
+  quiz: __QUIZ__,
+  thinking: __THINKING__,
+};
+
+/* =====================================================================
+   通用工具函数
+   ===================================================================== */
+const $ = (id) => document.getElementById(id);
+
+function appendOut(text, cls = "") {
+  const out = $("output-area");
+  const span = document.createElement("span");
+  span.textContent = text;
+  if (cls) span.className = cls;
+  out.appendChild(span);
+  out.scrollTop = out.scrollHeight;
+}
+
+function clearOut() {
+  const out = $("output-area");
+  // 保留首张 figure 渲染后不会在这里出现，直接清空即可
+  out.innerHTML = "";
+}
+
+/* =====================================================================
+   PyScript (Pyodide) 运行环境初始化
+   - 等到 window.pyscript.interpreter 存在即认为环境就绪
+   - 不再使用 npy.runPythonSync（该 API 不存在）
+   ===================================================================== */
+let pyodideReady = false;
+async function ensurePyodide() {
+  for (let tries = 0; tries < 120; tries++) {
+    try {
+      if (window.pyscript && window.pyscript.interpreter) {
+        const py = window.pyscript.interpreter.globals.get("pyodide");
+        if (py) {
+          pyodideReady = true;
+          $("env-status").textContent = "✓ Python 环境已就绪";
+          $("env-status").classList.add("out-ok");
+          return py;
+        }
+      }
+    } catch (e) { /* 继续等待 */ }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  throw new Error("Pyodide 加载超时，请检查网络或刷新页面重试。");
+}
+
+/* =====================================================================
+   代码执行核心
+   方案:
+     1) 重定向 sys.stdout 到 io.StringIO
+     2) 通过 py.runPythonAsync(code) 执行用户代码
+     3) 捕获 stdout 并在 output-area 显示文本
+     4) 检查 matplotlib：若用户执行了 plt.show()/plt.savefig，
+        则用 PyScript 自带的 figure 捕获机制（Pyodide 会自动渲染为
+        base64 PNG 插入页面）。我们在 catch 之外用小代码检查
+        plt.get_fignums() 是否大于 0 ，若是，把 figure 转 PNG。
+   ===================================================================== */
+async function runCode() {
+  const btn = $("btn-run");
+  const code = $("code-editor").value.trim();
+  if (!code) {
+    appendOut("（代码为空，请先在编辑器编写代码。）\n", "out-err");
+    return;
+  }
+  btn.disabled = true;
+  const original = btn.innerHTML;
+  btn.innerHTML = '<span class="spinner"></span>运行中...';
+  clearOut();
+  appendOut("[提示] 正在执行 Python 代码，首次运行需 5-15 秒加载依赖...\n", "out-info");
+
+  let py;
+  try {
+    py = await ensurePyodide();
+    // 初始化 stdout 捕获
+    await py.runPythonAsync(`
+import sys, io
+sys.stdout = io.StringIO()
+`);
+    // 执行用户代码
+    try {
+      await py.runPythonAsync(code);
+    } catch (err) {
+      // 捕获 Python 运行时错误并显示
+      appendOut(String(err) + "\n", "out-err");
+    }
+    // 读 stdout
+    const stdout = String(await py.runPythonAsync("sys.stdout.getvalue()"));
+    if (stdout) appendOut(stdout);
+
+    // 尝试渲染 matplotlib 图形
+    try {
+      const figCount = parseInt(
+        await py.runPythonAsync(
+          "import matplotlib.pyplot as plt; len(plt.get_fignums())"
+        )
+      );
+      if (figCount > 0) {
+        appendOut(`\n[绘图] 检测到 ${figCount} 张 figure，正在渲染为 PNG ...\n`, "out-info");
+        for (let i = 0; i < figCount; i++) {
+          const b64 = String(
+            await py.runPythonAsync(
+              `import matplotlib.pyplot as plt, base64, io\n` +
+              `fig = plt.figure(plt.get_fignums()[${i}])\n` +
+              `buf = io.BytesIO()\n` +
+              `fig.savefig(buf, format='png', bbox_inches='tight', dpi=120)\n` +
+              `base64.b64encode(buf.getvalue()).decode()`
+            )
+          );
+          const img = document.createElement("img");
+          img.src = "data:image/png;base64," + b64;
+          img.alt = "matplotlib-figure-" + (i + 1);
+          img.style.maxWidth = "100%";
+          img.style.borderRadius = "0.75rem";
+          img.style.border = "1px solid #e5e7eb";
+          img.style.marginTop = "0.5rem";
+          $("output-area").appendChild(img);
+        }
+        await py.runPythonAsync("plt.close('all')");
+      }
+    } catch (e) { /* matplotlib 未使用则忽略 */ }
+    appendOut("\n[完成] 代码执行结束。\n", "out-ok");
+  } catch (err) {
+    appendOut(String(err) + "\n", "out-err");
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+}
+
+/* =====================================================================
+   初始化：填充默认代码 + 选择题
+   ===================================================================== */
+function initQuiz() {
+  const box = $("quiz-box");
+  box.innerHTML = "";
+  COURSE.quiz.forEach((q, idx) => {
+    const card = document.createElement("div");
+    card.className = "border border-gray-100 rounded-xl p-4 md:p-5 bg-gray-50/40";
+    card.innerHTML = `
+      <div class="font-semibold text-gray-800 mb-3">Q${idx + 1}. ${q.q}</div>
+      <div class="space-y-2" data-qid="${idx}">
+        ${q.options
+          .map((opt, i) => `
+          <label class="choice-item" data-choice="${i}">
+            <input type="radio" name="q${idx}" value="${i}" />
+            <div><span class="choice-letter">${String.fromCharCode(65 + i)}</span>. ${opt}</div>
+          </label>`).join("")}
+      </div>
+      <div id="qresult-${idx}" class="mt-3 text-sm text-gray-600 hidden"></div>
+    `;
+    box.appendChild(card);
+
+    // 选项交互高亮
+    card.querySelectorAll('.choice-item').forEach(label => {
+      label.addEventListener('click', () => {
+        card.querySelectorAll('.choice-item').forEach(l => l.classList.remove('selected'));
+        label.classList.add('selected');
+      });
+    });
+  });
+}
+
+function submitQuiz() {
+  let correct = 0;
+  COURSE.quiz.forEach((q, idx) => {
+    const chosen = document.querySelector(`input[name="q${idx}"]:checked`);
+    const box = document.querySelector(`#quiz-box [data-qid="${idx}"]`);
+    const labels = box.querySelectorAll('.choice-item');
+    // 先重置所有视觉状态
+    labels.forEach(l => l.classList.remove('correct', 'wrong'));
+    // 正确选项永远标绿
+    labels[q.answer].classList.add('correct');
+    const resultDiv = document.getElementById(`qresult-${idx}`);
+    resultDiv.classList.remove('hidden');
+
+    if (!chosen) {
+      resultDiv.innerHTML = `<span class="text-rose-500">未作答</span>。正确答案：<b>${String.fromCharCode(65 + q.answer)}</b>。<br/>解析：${q.explain}`;
+      return;
+    }
+    const v = parseInt(chosen.value, 10);
+    if (v === q.answer) {
+      correct++;
+      resultDiv.innerHTML = `<span class="text-emerald-600 font-semibold">✓ 回答正确</span><br/>解析：${q.explain}`;
+    } else {
+      labels[v].classList.add('wrong');
+      resultDiv.innerHTML = `<span class="text-rose-500 font-semibold">✗ 回答错误</span>，正确答案：<b>${String.fromCharCode(65 + q.answer)}</b>。<br/>解析：${q.explain}`;
+    }
+  });
+  const totalDiv = $("quiz-total");
+  totalDiv.innerHTML = `你的得分：<b class="text-brand-500 text-base">${correct} / ${COURSE.quiz.length}</b>  &nbsp;·&nbsp;  ${correct === COURSE.quiz.length ? "🎉 全对，知识点掌握良好！" : correct >= 2 ? "👍 不错，继续巩固。" : "📚 建议再看一遍知识点与解析。"}`;
+}
+
+function initAnswerPanel() {
+  const quizDiv = $("answer-quiz-text");
+  quizDiv.innerHTML = COURSE.quiz.map((q, idx) => `
+    <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/60">
+      <div class="font-semibold text-gray-800 mb-2">Q${idx + 1}. ${q.q}</div>
+      <div class="text-sm text-gray-700 leading-7">
+        正确答案：<b class="text-brand-500">${String.fromCharCode(65 + q.answer)}</b>（${q.options[q.answer]}）<br/>
+        ${q.explain}
+      </div>
+    </div>
+  `).join("");
+
+  $("answer-code").textContent = COURSE.defaultCode;
+  $("answer-thinking").textContent = COURSE.thinking;
+}
+
+function initSummary(items) {
+  const box = $("summary-box");
+  box.innerHTML = items.map((it, idx) => `
+    <div class="border border-gray-100 rounded-xl p-5 bg-gradient-to-br from-brand-50/60 to-white hover-lift">
+      <div class="text-xs font-bold text-brand-500 mb-2">要点 ${idx + 1}</div>
+      <div class="text-base font-bold text-gray-900 mb-1">${it.title}</div>
+      <div class="text-sm text-gray-600 leading-7">${it.body}</div>
+    </div>
+  `).join("");
+}
+
+/* =====================================================================
+   DOM ready
+   ===================================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  $("code-editor").value = COURSE.defaultCode;
+
+  // 运行代码
+  $("btn-run").addEventListener("click", runCode);
+  // 重置
+  $("btn-reset").addEventListener("click", () => {
+    $("code-editor").value = COURSE.defaultCode;
+    clearOut();
+    appendOut("↺ 已重置为默认示例代码。\n", "out-info");
+  });
+  // 复制
+  $("btn-copy").addEventListener("click", () => {
+    navigator.clipboard.writeText($("code-editor").value).then(() => {
+      const btn = $("btn-copy");
+      const old = btn.textContent;
+      btn.textContent = "✓ 已复制";
+      setTimeout(() => (btn.textContent = old), 1200);
+    });
+  });
+  $("btn-copy-ref").addEventListener("click", () => {
+    navigator.clipboard.writeText(COURSE.defaultCode).then(() => {
+      const btn = $("btn-copy-ref");
+      const old = btn.textContent;
+      btn.textContent = "✓ 已复制";
+      setTimeout(() => (btn.textContent = old), 1200);
+    });
+  });
+  $("btn-clear-out").addEventListener("click", () => clearOut());
+
+  // 选择题
+  initQuiz();
+  $("btn-quiz").addEventListener("click", submitQuiz);
+  $("btn-quiz-reset").addEventListener("click", () => {
+    initQuiz();
+    $("quiz-total").innerHTML = "";
+  });
+
+  // 答案 + 总结
+  initAnswerPanel();
+  initSummary(__SUMMARY__);
+
+  // 并行触发 PyScript 环境探测
+  ensurePyodide().catch(() => {
+    $("env-status").textContent = "⚠ 环境加载失败，请刷新重试";
+    $("env-status").classList.add("out-err");
+  });
+});
+</script>
+</body>
+</html>

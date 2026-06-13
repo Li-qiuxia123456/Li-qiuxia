@@ -1,0 +1,82 @@
+# ============================================================
+# 课程 6：餐饮门店营收分析
+# ============================================================
+
+print("==== 餐饮门店营收分析 ====")
+print()
+
+# ----- 输入数据 -----
+print(">>> 输入数据：10 个菜品")
+menu = [
+    {"name": "招牌红烧肉", "price": 58, "qty": 185},
+    {"name": "清蒸鲈鱼", "price": 88, "qty": 120},
+    {"name": "宫保鸡丁", "price": 38, "qty": 220},
+    {"name": "麻婆豆腐", "price": 28, "qty": 150},
+    {"name": "糖醋排骨", "price": 48, "qty": 95},
+    {"name": "鱼香肉丝", "price": 36, "qty": 210},
+    {"name": "水煮牛肉", "price": 68, "qty": 130},
+    {"name": "西红柿炒蛋", "price": 22, "qty": 280},
+    {"name": "酸辣土豆丝", "price": 18, "qty": 165},
+    {"name": "蒜蓉西兰花", "price": 26, "qty": 90},
+]
+
+print("菜品 | 单价 | 销量")
+for m in menu:
+    print(m["name"], "|", m["price"], "元 |", m["qty"], "份")
+print()
+
+# ----- 收入计算 -----
+print(">>> 步骤 1：计算每道菜收入")
+total_revenue = 0
+for m in menu:
+    m["revenue"] = m["price"] * m["qty"]
+    total_revenue += m["revenue"]
+
+sorted_by_rev = sorted(menu, key=lambda x: x["revenue"], reverse=True)
+print("菜品 | 收入 | 占比")
+for m in sorted_by_rev:
+    ratio = round(m["revenue"] / total_revenue * 100, 2)
+    print(m["name"], "|", m["revenue"], "元 |", ratio, "%")
+print()
+print("总收入:", total_revenue, "元")
+print()
+
+# ----- 识别明星与弱势菜品 -----
+print(">>> 步骤 2：识别明星菜品与表现不佳菜品")
+avg_revenue = round(total_revenue / len(menu), 2)
+avg_qty = round(sum(m["qty"] for m in menu) / len(menu), 2)
+print("单菜平均收入:", avg_revenue, "元")
+print("单菜平均销量:", avg_qty, "份")
+print()
+
+star_items = []
+weak_items = []
+for m in menu:
+    if m["revenue"] > avg_revenue * 1.3 and m["qty"] > avg_qty:
+        star_items.append(m)
+    elif m["revenue"] < avg_revenue * 0.7:
+        weak_items.append(m)
+
+print("【明星菜品】（收入高且销量高）")
+for m in star_items:
+    print("  -", m["name"], "收入", m["revenue"], "元，销量", m["qty"], "份")
+print("【表现不佳菜品】（收入低于均值 70%）")
+for m in weak_items:
+    print("  -", m["name"], "收入", m["revenue"], "元，销量", m["qty"], "份")
+print()
+
+# ----- 业务建议 -----
+print(">>> 步骤 3：业务建议")
+top1 = sorted_by_rev[0]
+bottom1 = sorted_by_rev[-1]
+print("  1. 【", top1["name"], "】收入最高", top1["revenue"], "元，应重点保障供应与品质")
+print("  2. 【", bottom1["name"], "】收入最低", bottom1["revenue"], "元，可考虑调整定价或优化配方")
+top3_sum = sum(m["revenue"] for m in sorted_by_rev[:3])
+print("  3. Top 3 菜品贡献", top3_sum, "元，占总收入", round(top3_sum / total_revenue * 100, 1), "%，是核心盈利来源")
+if star_items:
+    print("  4. 明星菜品共", len(star_items), "道，可在菜单上重点展示，做组合套餐")
+if weak_items:
+    print("  5. 表现不佳菜品共", len(weak_items), "道，建议做促销测试或下架评估")
+print("  6. 建议定期（月度）更新本分析，跟踪菜品生命周期")
+print()
+print("==== 分析结束 ====")

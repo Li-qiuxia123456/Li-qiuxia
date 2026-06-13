@@ -1,0 +1,118 @@
+# ============================================================
+# 课程 2：电商订单异常检测
+# 数据：25 个订单（user + amount）
+# 分析：均值、标准差、异常值（> mean+2*std）、高频账户
+# ============================================================
+
+print("==== 电商订单异常检测 ====")
+print()
+
+# ----- 输入数据 -----
+print(">>> 输入数据：25 个订单")
+orders = [
+    {"order_id": "O001", "user": "小明", "amount": 299},
+    {"order_id": "O002", "user": "小红", "amount": 450},
+    {"order_id": "O003", "user": "小刚", "amount": 189},
+    {"order_id": "O004", "user": "小明", "amount": 320},
+    {"order_id": "O005", "user": "小红", "amount": 260},
+    {"order_id": "O006", "user": "小刚", "amount": 510},
+    {"order_id": "O007", "user": "小丽", "amount": 8990},
+    {"order_id": "O008", "user": "小明", "amount": 380},
+    {"order_id": "O009", "user": "小红", "amount": 299},
+    {"order_id": "O010", "user": "小刚", "amount": 420},
+    {"order_id": "O011", "user": "小丽", "amount": 7650},
+    {"order_id": "O012", "user": "小王", "amount": 150},
+    {"order_id": "O013", "user": "小明", "amount": 310},
+    {"order_id": "O014", "user": "小红", "amount": 470},
+    {"order_id": "O015", "user": "小刚", "amount": 260},
+    {"order_id": "O016", "user": "小王", "amount": 189},
+    {"order_id": "O017", "user": "小丽", "amount": 12000},
+    {"order_id": "O018", "user": "小明", "amount": 299},
+    {"order_id": "O019", "user": "小红", "amount": 380},
+    {"order_id": "O020", "user": "小刚", "amount": 410},
+    {"order_id": "O021", "user": "小王", "amount": 220},
+    {"order_id": "O022", "user": "小丽", "amount": 9800},
+    {"order_id": "O023", "user": "小明", "amount": 350},
+    {"order_id": "O024", "user": "小红", "amount": 290},
+    {"order_id": "O025", "user": "小刚", "amount": 460},
+]
+
+for o in orders:
+    print(o["order_id"], "用户:", o["user"], "金额:", o["amount"])
+print()
+
+# ----- 统计指标 -----
+print(">>> 步骤 1：计算均值和标准差")
+amounts = [o["amount"] for o in orders]
+n = len(amounts)
+mean = round(sum(amounts) / n, 2)
+variance = sum((x - mean) ** 2 for x in amounts) / n
+std = round(variance ** 0.5, 2)
+
+print("订单数:", n)
+print("订单金额均值:", mean)
+print("标准差:", std)
+print("阈值(mean+2*std):", round(mean + 2 * std, 2))
+print()
+
+# ----- 异常订单标记 -----
+print(">>> 步骤 2：标记异常订单")
+threshold = mean + 2 * std
+abnormal = []
+for o in orders:
+    if o["amount"] > threshold:
+        abnormal.append(o)
+        print("【异常】", o["order_id"], "用户:", o["user"], "金额:", o["amount"], "（超过阈值）")
+if len(abnormal) == 0:
+    print("未发现异常订单")
+print()
+
+# ----- 高频账户统计 -----
+print(">>> 步骤 3：高频账户统计")
+user_count = {}
+user_total = {}
+for o in orders:
+    u = o["user"]
+    if u in user_count:
+        user_count[u] += 1
+        user_total[u] += o["amount"]
+    else:
+        user_count[u] = 1
+        user_total[u] = o["amount"]
+
+sorted_users = sorted(user_count.items(), key=lambda x: x[1], reverse=True)
+print("用户 | 订单数 | 总金额")
+for u, c in sorted_users:
+    print(u, "|", c, "单 |", user_total[u], "元")
+print()
+
+# ----- 风险建议 -----
+print(">>> 步骤 4：风险建议")
+print("【异常金额分析】")
+if len(abnormal) > 0:
+    total_abn = sum(a["amount"] for a in abnormal)
+    print("  - 共发现", len(abnormal), "笔异常订单，总金额", total_abn, "元")
+    abn_users = {}
+    for a in abnormal:
+        abn_users[a["user"]] = abn_users.get(a["user"], 0) + 1
+    for u, c in abn_users.items():
+        print("  - 用户【", u, "】有", c, "笔异常订单")
+else:
+    print("  - 无异常订单，金额分布正常")
+
+print()
+print("【高频账户分析】")
+for u, c in sorted_users:
+    if c >= 5:
+        print("  - 用户【", u, "】下单", c, "次，为高频活跃用户")
+    elif c <= 1:
+        print("  - 用户【", u, "】仅下单", c, "次，为低频用户")
+
+print()
+print("【风控建议】")
+print("  1. 对异常金额订单进行人工复核，确认是否为真实交易")
+print("  2. 对高频大额用户进行重点风控，可能存在刷单风险")
+print("  3. 建立动态阈值机制（mean+2*std），实时预警异常订单")
+print("  4. 低频大额订单需额外注意身份验证")
+print()
+print("==== 分析结束 ====")
